@@ -14,12 +14,21 @@ import { env } from '@/config/env';
  *   the verification phase, not here.
  * - `react-native-url-polyfill/auto` is imported first because supabase-js relies
  *   on the WHATWG URL API, which React Native does not fully implement natively.
+ * - Falls back to a placeholder URL/key when `.env` isn't configured yet, so
+ *   `createClient` doesn't throw at import time and crash the whole app before
+ *   a single screen renders. Real calls will still fail (network/auth error,
+ *   caught by each screen) until real credentials are set — see env.ts's
+ *   console warning for which vars are missing.
  */
-export const supabase = createClient(env.supabaseUrl, env.supabaseAnonKey, {
-  auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: false,
+export const supabase = createClient(
+  env.supabaseUrl || 'https://placeholder.supabase.co',
+  env.supabaseAnonKey || 'placeholder-anon-key',
+  {
+    auth: {
+      storage: AsyncStorage,
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false,
+    },
   },
-});
+);

@@ -2,6 +2,11 @@
 module.exports = {
   content: ['./app/**/*.{js,jsx,ts,tsx}', './src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
+  // The app is fixed-light (userInterfaceStyle: 'light' in app.config.ts;
+  // no screen has dark-mode styling). 'class' avoids NativeWind's web
+  // runtime throwing when anything touches color-scheme APIs under the
+  // default 'media' strategy — nothing here ever adds a `.dark` class.
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {

@@ -7,8 +7,9 @@ price per seat. Built with Expo Router, NativeWind, Supabase, and Google Places.
 ## Status
 
 Actively in development. All core screens are implemented and typecheck
-cleanly, but two backend pieces still need to be configured before the app
-works end-to-end (see [Known gaps](#known-gaps) below):
+cleanly. The Supabase project is created and its schema is live (see
+[Backend](#backend) below); one manual dashboard step remains before Auth
+works end-to-end (see [Known gaps](#known-gaps)):
 
 | Screen | Status |
 | --- | --- |
@@ -69,20 +70,26 @@ npm run web
 npm run typecheck
 ```
 
+## Backend
+
+The Supabase project's schema lives in `supabase/migrations/` (tables,
+RLS policies, and two triggers: auto-create a profile on sign-up, and
+atomically decrement a ride's `seats_available` on booking). Apply it to a
+project with the [Supabase CLI](https://supabase.com/docs/guides/cli):
+
+```bash
+supabase login
+supabase link --project-ref <your-project-ref>
+supabase db push
+```
+
 ## Known gaps
 
-These are backend/dashboard steps this repo can't verify or configure on its
-own:
-
-- **Supabase schema**: `profiles`, `rides`, and `bookings` tables (with RLS
-  policies) must exist in your Supabase project — see the shapes in
-  `src/types/models.ts` and the queries in `src/services/rides.ts`.
 - **Phone auth provider**: Supabase's phone-OTP sign-in needs an SMS provider
   (Twilio, MSG91, etc.) configured under Authentication > Providers in the
-  Supabase dashboard.
-
-Until both are set up, the Auth, Home, Offer Ride, and Ride Details screens
-render correctly but their Supabase calls will error.
+  Supabase dashboard — this can't be scripted from this repo since it needs a
+  separate SMS-provider account. Until it's set up, requesting an OTP on the
+  Auth screen will error.
 
 ## Project structure
 

@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
 
+import { RideMapPreview } from '@/components/RideMapPreview';
 import { avatarColorFor, initialsFor } from '@/lib/avatar';
 import { formatDate, formatTime } from '@/lib/format';
 import { haversineKm } from '@/lib/geo';
@@ -89,61 +89,13 @@ export default function RideDetailsScreen() {
   return (
     <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-4 pb-8">
       {ride.source_coords && ride.destination_coords ? (
-        <View className="h-56 w-full overflow-hidden">
-          <MapView
-            style={{ flex: 1 }}
-            initialRegion={{
-              latitude: (ride.source_coords.lat + ride.destination_coords.lat) / 2,
-              longitude: (ride.source_coords.lng + ride.destination_coords.lng) / 2,
-              latitudeDelta: Math.max(
-                Math.abs(ride.source_coords.lat - ride.destination_coords.lat) * 1.6,
-                0.05,
-              ),
-              longitudeDelta: Math.max(
-                Math.abs(ride.source_coords.lng - ride.destination_coords.lng) * 1.6,
-                0.05,
-              ),
-            }}
-          >
-            <Marker
-              coordinate={{
-                latitude: ride.source_coords.lat,
-                longitude: ride.source_coords.lng,
-              }}
-              title={ride.source_text}
-              pinColor="#3C8F86"
-            />
-            <Marker
-              coordinate={{
-                latitude: ride.destination_coords.lat,
-                longitude: ride.destination_coords.lng,
-              }}
-              title={ride.destination_text}
-              pinColor="#3A5273"
-            />
-            <Polyline
-              coordinates={[
-                {
-                  latitude: ride.source_coords.lat,
-                  longitude: ride.source_coords.lng,
-                },
-                {
-                  latitude: ride.destination_coords.lat,
-                  longitude: ride.destination_coords.lng,
-                },
-              ]}
-              strokeColor="#3C8F86"
-              strokeWidth={3}
-            />
-          </MapView>
-          {trip ? (
-            <View className="absolute bottom-3 right-3 rounded-full bg-white px-3 py-1.5">
-              <Text className="font-heading text-sm text-ink">
-                {trip.km} km · ~{trip.hours} hrs
-              </Text>
-            </View>
-          ) : null}
-        </View>
+        <RideMapPreview
+          source={ride.source_coords}
+          destination={ride.destination_coords}
+          sourceLabel={ride.source_text}
+          destinationLabel={ride.destination_text}
+          trip={trip}
+        />
       ) : null}
 
       <View className="gap-4 px-5">

@@ -1,5 +1,5 @@
 /**
- * Domain models mirroring the Supabase schema (see spec section 3).
+ * Domain models mirroring the Supabase schema (see supabase/migrations/).
  * Kept in one place so screens, services, and the store agree on shapes.
  * These will be the source of truth until we generate types from Supabase.
  */
@@ -26,7 +26,7 @@ export interface Profile {
   vehicle_plate: string | null;
 }
 
-/** A geographic point as we pass it around the app (Postgres stores geometry). */
+/** A geographic point as we pass it around the app (stored as jsonb, not PostGIS — no geospatial queries yet). */
 export interface LatLng {
   lat: number;
   lng: number;
