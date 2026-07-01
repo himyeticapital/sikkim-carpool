@@ -69,6 +69,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           'Sikkim Carpool uses your location to suggest nearby pickup points and set your starting point.',
       },
     ],
+    '@react-native-community/datetimepicker',
   ],
   experiments: {
     typedRoutes: true,

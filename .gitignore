@@ -37,6 +37,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Claude Code local overrides
+.claude/settings.local.json
+
 # generated native folders
 /ios
 /android

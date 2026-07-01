@@ -29,18 +29,24 @@ interface PlacesAutocompleteProps {
   /** ms to wait after the last keystroke before querying. */
   debounceMs?: number;
   autoFocus?: boolean;
+  /**
+   * When provided, an "Use current location" row is offered above
+   * suggestions while the field is empty and focused.
+   */
+  onUseCurrentLocation?: () => void | Promise<void>;
 }
 
 /**
- * Reusable Google Places Autocomplete input.
+ * Reusable Google Places Autocomplete input, used by Home (destination
+ * search) and Offer Ride (source + destination).
  *
- * Used by both Home (destination search) and Offer Ride (source + destination)
- * in later phases. Handles debouncing, request cancellation of stale queries,
- * Places billing session tokens, loading/error states, and resolving the
- * chosen prediction to lat/lng.
+ * Handles debouncing, request cancellation of stale queries, Places billing
+ * session tokens, loading/error states, and resolving the chosen prediction
+ * to lat/lng. Shows a "Powered by Google" attribution whenever predictions
+ * are visible, per Google Places' terms of service.
  *
- * UI is intentionally large-target / high-contrast — this app is often used in
- * a moving vehicle on mountain roads.
+ * UI is intentionally large-target / high-contrast — this app is often used
+ * in a moving vehicle on mountain roads.
  */
 export function PlacesAutocomplete({
   value,
@@ -50,6 +56,7 @@ export function PlacesAutocomplete({
   label,
   debounceMs = 350,
   autoFocus = false,
+  onUseCurrentLocation,
 }: PlacesAutocompleteProps) {
   const [query, setQuery] = useState(value ?? '');
   const [predictions, setPredictions] = useState<AutocompletePrediction[]>([]);
@@ -120,7 +127,7 @@ export function PlacesAutocomplete({
       if (trimmed.length < 2) {
         abortRef.current?.abort();
         setPredictions([]);
-        setShowList(false);
+        setShowList(Boolean(onUseCurrentLocation) && trimmed.length === 0);
         setLoading(false);
         setError(null);
         return;
@@ -128,7 +135,7 @@ export function PlacesAutocomplete({
 
       debounceRef.current = setTimeout(() => runSearch(trimmed), debounceMs);
     },
-    [debounceMs, onChangeText, runSearch],
+    [debounceMs, onChangeText, onUseCurrentLocation, runSearch],
   );
 
   const handlePick = useCallback(
@@ -162,6 +169,11 @@ export function PlacesAutocomplete({
     [onSelect],
   );
 
+  const handleUseCurrentLocation = useCallback(async () => {
+    setShowList(false);
+    await onUseCurrentLocation?.();
+  }, [onUseCurrentLocation]);
+
   // Clean up any in-flight timer/request on unmount.
   useEffect(() => {
     return () => {
@@ -170,27 +182,33 @@ export function PlacesAutocomplete({
     };
   }, []);
 
+  const showCurrentLocationRow =
+    showList && Boolean(onUseCurrentLocation) && query.trim().length === 0;
+  const showDropdown = showList && (predictions.length > 0 || showCurrentLocationRow);
+
   return (
     <View className="w-full">
       {label ? (
         <Text className="mb-1 text-base font-semibold text-ink">{label}</Text>
       ) : null}
 
-      <View className="flex-row items-center rounded-2xl border-2 border-slate-300 bg-white px-4">
+      <View className="flex-row items-center rounded-2xl border-2 border-brand-light bg-white px-4">
         <TextInput
           className="flex-1 py-4 text-lg text-ink"
           value={query}
           onChangeText={handleChangeText}
           onFocus={() => {
-            if (predictions.length > 0) setShowList(true);
+            if (predictions.length > 0 || (onUseCurrentLocation && query.trim().length === 0)) {
+              setShowList(true);
+            }
           }}
           placeholder={placeholder}
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor="#7A6B60"
           autoFocus={autoFocus}
           autoCorrect={false}
           returnKeyType="search"
         />
-        {loading ? <ActivityIndicator color="#0F766E" /> : null}
+        {loading ? <ActivityIndicator color="#3C8F86" /> : null}
         {query.length > 0 && !loading ? (
           <Pressable
             hitSlop={12}
@@ -205,18 +223,31 @@ export function PlacesAutocomplete({
       </View>
 
       {error ? (
-        <Text className="mt-1 px-1 text-base text-red-600">{error}</Text>
+        <Text className="mt-1 px-1 text-base text-prayer-red">{error}</Text>
       ) : null}
 
-      {showList && predictions.length > 0 ? (
-        <View className="mt-2 overflow-hidden rounded-2xl border border-slate-200 bg-white">
+      {showDropdown ? (
+        <View className="mt-2 overflow-hidden rounded-2xl border border-brand-light bg-white">
+          {showCurrentLocationRow ? (
+            <Pressable
+              onPress={handleUseCurrentLocation}
+              android_ripple={{ color: '#DCF1EE' }}
+              className="flex-row items-center gap-2 px-4 py-4 active:bg-brand-light"
+            >
+              <Text className="text-lg">📍</Text>
+              <Text className="font-heading text-lg text-brand-dark">
+                Use current location
+              </Text>
+            </Pressable>
+          ) : null}
+
           {predictions.map((p, index) => (
             <Pressable
               key={p.placeId}
               onPress={() => handlePick(p)}
-              android_ripple={{ color: '#CCFBF1' }}
+              android_ripple={{ color: '#DCF1EE' }}
               className={`px-4 py-4 active:bg-brand-light ${
-                index > 0 ? 'border-t border-slate-100' : ''
+                index > 0 || showCurrentLocationRow ? 'border-t border-brand-light' : ''
               }`}
             >
               <Text className="text-lg font-medium text-ink" numberOfLines={1}>
@@ -229,6 +260,12 @@ export function PlacesAutocomplete({
               ) : null}
             </Pressable>
           ))}
+
+          {predictions.length > 0 ? (
+            <View className="items-center border-t border-brand-light bg-cream py-2">
+              <Text className="text-xs text-muted">Powered by Google</Text>
+            </View>
+          ) : null}
         </View>
       ) : null}
     </View>

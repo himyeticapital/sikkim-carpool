@@ -14,6 +14,7 @@ import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { Logo } from '@/components/brand/Logo';
 import { MountainBackdrop } from '@/components/brand/MountainBackdrop';
 import { PrayerFlagGarland } from '@/components/brand/PrayerFlagGarland';
+import { RoadMotif } from '@/components/brand/RoadMotif';
 import { markOnboardingSeen } from '@/services/onboarding';
 
 function IconBadge({ children }: { children: React.ReactNode }) {
@@ -157,7 +158,12 @@ export default function OnboardingScreen() {
       </View>
 
       <View pointerEvents="none" className="absolute inset-x-0 bottom-0">
-        <MountainBackdrop height={170} />
+        <View className="relative">
+          <MountainBackdrop height={170} />
+          <View className="absolute inset-0">
+            <RoadMotif height={170} />
+          </View>
+        </View>
       </View>
 
       <View className="absolute inset-x-0 bottom-10 items-center gap-6 px-8">

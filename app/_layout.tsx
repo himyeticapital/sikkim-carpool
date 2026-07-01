@@ -14,6 +14,10 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { fetchOrCreateProfile } from '@/services/auth';
+import { supabase } from '@/services/supabase';
+import { useAppStore } from '@/store/useAppStore';
+
 // Keep the native splash up until Baloo 2 finishes loading, so headings never
 // flash in the system font before swapping to the app's display face.
 SplashScreen.preventAutoHideAsync().catch(() => {});
@@ -23,8 +27,9 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
  * handling need, and declares the top-level navigation stack.
  *
  * The tab navigator, ride details, verification, and auth screens are all
- * pushed on top of this stack. Auth-gating (redirect unauthenticated users to
- * /auth) is wired in the Auth phase; for now every route is reachable.
+ * pushed on top of this stack. The actual redirect to /auth when signed out
+ * happens in app/index.tsx, driven by the session this layout bootstraps
+ * below.
  */
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({
@@ -33,12 +38,44 @@ export default function RootLayout() {
     Baloo2_600SemiBold,
     Baloo2_700Bold,
   });
+  const setSession = useAppStore((s) => s.setSession);
+  const setProfile = useAppStore((s) => s.setProfile);
+  const setInitializing = useAppStore((s) => s.setInitializing);
 
   useEffect(() => {
     if (fontsLoaded || fontError) {
       SplashScreen.hideAsync().catch(() => {});
     }
   }, [fontsLoaded, fontError]);
+
+  // Bootstrap the auth session on cold start, then keep it in sync (token
+  // refresh, sign-out from another device, etc.) for as long as the app runs.
+  useEffect(() => {
+    supabase.auth.getSession().then(async ({ data }) => {
+      setSession(data.session);
+      if (data.session) {
+        try {
+          const profile = await fetchOrCreateProfile(
+            data.session.user.id,
+            data.session.user.phone ?? '',
+          );
+          setProfile(profile);
+        } catch {
+          // Profile lookup failed (e.g. offline) — session still stands, retry later.
+        }
+      }
+      setInitializing(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) setProfile(null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [setInitializing, setProfile, setSession]);
 
   if (!fontsLoaded && !fontError) {
     return null;

@@ -146,3 +146,46 @@ export async function fetchPlaceDetails(
     lng: location.lng,
   };
 }
+
+/**
+ * Resolves a device coordinate (e.g. from expo-location) to a readable
+ * address, for the "use current location" option in the places search.
+ */
+export async function fetchReverseGeocode(
+  lat: number,
+  lng: number,
+): Promise<PlaceSelection> {
+  const key = env.googleMapsApiKey;
+  if (!key) {
+    throw new Error('Google Maps API key is not configured.');
+  }
+
+  const params = new URLSearchParams({ latlng: `${lat},${lng}`, key });
+  const res = await fetch(
+    `https://maps.googleapis.com/maps/api/geocode/json?${params.toString()}`,
+  );
+  if (!res.ok) {
+    throw new Error(`Reverse geocode failed: HTTP ${res.status}`);
+  }
+  const json = (await res.json()) as {
+    status: string;
+    error_message?: string;
+    results?: Array<{ place_id: string; formatted_address: string }>;
+  };
+
+  if (json.status !== 'OK' || !json.results?.length) {
+    throw new Error(
+      `Reverse geocode: ${json.status}${
+        json.error_message ? ` — ${json.error_message}` : ''
+      }`,
+    );
+  }
+
+  const [first] = json.results;
+  return {
+    placeId: first.place_id,
+    description: first.formatted_address,
+    lat,
+    lng,
+  };
+}

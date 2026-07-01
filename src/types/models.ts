@@ -14,10 +14,16 @@ export interface Profile {
   phone_number: string;
   is_driver: boolean;
   rating: number;
+  /** Denormalized count of completed rides, shown next to the rating badge. */
+  completed_rides_count: number;
   kyc_status: KycStatus;
   digilocker_ref_id: string | null;
   verified_at: string | null;
   created_at: string;
+  /** Vehicle details, set once a driver posts their first ride. */
+  vehicle_make: string | null;
+  vehicle_color: string | null;
+  vehicle_plate: string | null;
 }
 
 /** A geographic point as we pass it around the app (Postgres stores geometry). */
@@ -39,6 +45,21 @@ export interface Ride {
   price_per_seat: number;
   status: RideStatus;
   created_at: string;
+}
+
+/** A ride joined with the subset of its driver's profile the UI needs. */
+export interface RideWithDriver extends Ride {
+  driver: Pick<
+    Profile,
+    | 'id'
+    | 'full_name'
+    | 'rating'
+    | 'completed_rides_count'
+    | 'vehicle_make'
+    | 'vehicle_color'
+    | 'vehicle_plate'
+    | 'phone_number'
+  >;
 }
 
 export interface Booking {
