@@ -37,8 +37,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
-# Claude Code local overrides
-.claude/settings.local.json
+# local editor/agent config
+.claude/
+CLAUDE.md
+AGENTS.md
 
 # generated native folders
 /ios
