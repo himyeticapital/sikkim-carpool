@@ -89,11 +89,12 @@ supabase db push
 
 ## Known gaps
 
-- **Phone auth provider**: Supabase's phone-OTP sign-in needs an SMS provider
-  (Twilio, MSG91, etc.) configured under Authentication > Providers in the
-  Supabase dashboard — this can't be scripted from this repo since it needs a
-  separate SMS-provider account. Until it's set up, requesting an OTP on the
-  Auth screen will error.
+- **Real SMS delivery**: phone-OTP sign-in is enabled with **test numbers**
+  (`+91 99999 00001` and `+91 99999 00002`, both accepting OTP `123456`,
+  valid until 2027-07-02) so the app works end-to-end in development. Real
+  phone numbers still need an SMS provider (Twilio, MSG91, etc.) configured
+  under Authentication > Providers in the Supabase dashboard — that needs a
+  separate SMS-provider account and can't be scripted from this repo.
 
 ## Project structure
 
