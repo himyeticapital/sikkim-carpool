@@ -1,5 +1,5 @@
 import { supabase } from '@/services/supabase';
-import type { Booking, Ride, RideWithDriver } from '@/types/models';
+import type { Booking, DriverContact, Ride, RideWithDriver } from '@/types/models';
 
 /**
  * Data layer for rides/bookings. Requires `rides`, `bookings`, and `profiles`
@@ -8,8 +8,11 @@ import type { Booking, Ride, RideWithDriver } from '@/types/models';
  * set up.
  */
 
+// Driver info comes from the profiles_public view, never the base table:
+// phone_number and vehicle_plate are gated behind get_driver_contact (a
+// confirmed booking) and must not appear in search/detail payloads.
 const RIDE_WITH_DRIVER_SELECT =
-  '*, driver:profiles!rides_driver_id_fkey(id, full_name, rating, completed_rides_count, vehicle_make, vehicle_color, vehicle_plate, phone_number)';
+  '*, driver:profiles_public!rides_driver_id_fkey(id, full_name, rating, completed_rides_count, vehicle_make, vehicle_color)';
 
 export interface RideFilters {
   destinationText?: string;
@@ -25,15 +28,24 @@ export async function listRides(
     .select(RIDE_WITH_DRIVER_SELECT)
     .eq('status', 'active')
     .gt('seats_available', 0)
+    // Rides that already departed are stale even if still 'active'.
+    .gte('departure_time', new Date().toISOString())
     .order('departure_time', { ascending: true });
 
   if (filters.destinationText) {
     query = query.ilike('destination_text', `%${filters.destinationText}%`);
   }
   if (filters.departureDate) {
+    // The date means a calendar day in the device's timezone, so build the
+    // day's bounds as local Dates and compare as absolute instants —
+    // timezone-naive strings would be read as UTC by Postgres and shift the
+    // whole day by the UTC offset (5h30m for IST).
+    const dayStart = new Date(`${filters.departureDate}T00:00:00`);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setDate(dayEnd.getDate() + 1);
     query = query
-      .gte('departure_time', `${filters.departureDate}T00:00:00`)
-      .lte('departure_time', `${filters.departureDate}T23:59:59`);
+      .gte('departure_time', dayStart.toISOString())
+      .lt('departure_time', dayEnd.toISOString());
   }
 
   const { data, error } = await query;
@@ -95,4 +107,20 @@ export async function createBooking(
     .single();
   if (error) throw error;
   return data as Booking;
+}
+
+/**
+ * Resolves the driver's phone number and vehicle plate for a ride. Gated
+ * server-side (get_driver_contact RPC): returns null unless the caller has a
+ * confirmed booking on the ride or is its driver.
+ */
+export async function getDriverContact(
+  rideId: string,
+): Promise<DriverContact | null> {
+  const { data, error } = await supabase.rpc('get_driver_contact', {
+    p_ride_id: rideId,
+  });
+  if (error) throw error;
+  const [contact] = (data ?? []) as DriverContact[];
+  return contact ?? null;
 }

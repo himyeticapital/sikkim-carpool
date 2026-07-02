@@ -3,12 +3,13 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { RideMapPreview } from '@/components/RideMapPreview';
+import { REQUIRE_RIDER_KYC_BEFORE_BOOKING } from '@/config/flags';
 import { avatarColorFor, initialsFor } from '@/lib/avatar';
 import { formatDate, formatTime } from '@/lib/format';
 import { haversineKm } from '@/lib/geo';
-import { createBooking, getRideById } from '@/services/rides';
+import { createBooking, getDriverContact, getRideById } from '@/services/rides';
 import { selectIsVerified, useAppStore } from '@/store/useAppStore';
-import type { RideWithDriver } from '@/types/models';
+import type { DriverContact, RideWithDriver } from '@/types/models';
 
 const ASSUMED_SPEED_KMH = 30;
 
@@ -23,6 +24,10 @@ export default function RideDetailsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [booking, setBooking] = useState(false);
   const [booked, setBooked] = useState(false);
+  // Kept separate from `error`: that one swaps the whole screen for the
+  // could-not-load state, which must not happen on a failed booking attempt.
+  const [bookingError, setBookingError] = useState<string | null>(null);
+  const [contact, setContact] = useState<DriverContact | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -49,17 +54,25 @@ export default function RideDetailsScreen() {
 
   const handleBook = useCallback(async () => {
     if (!ride || !session) return;
-    if (!isVerified) {
+    if (REQUIRE_RIDER_KYC_BEFORE_BOOKING && !isVerified) {
       router.push('/verify/digilocker');
       return;
     }
     setBooking(true);
-    setError(null);
+    setBookingError(null);
     try {
       await createBooking(ride.id, session.user.id, 1);
       setBooked(true);
+      try {
+        setContact(await getDriverContact(ride.id));
+      } catch {
+        // The seat is booked either way — the screen just omits the WhatsApp
+        // button if the contact lookup fails.
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not book this seat.');
+      setBookingError(
+        err instanceof Error ? err.message : 'Could not book this seat.',
+      );
     } finally {
       setBooking(false);
     }
@@ -84,7 +97,13 @@ export default function RideDetailsScreen() {
   }
 
   const driverName = ride.driver.full_name ?? 'Driver';
-  const vehicleKnown = ride.driver.vehicle_make || ride.driver.vehicle_plate;
+  const vehicleDesc = [ride.driver.vehicle_color, ride.driver.vehicle_make]
+    .filter(Boolean)
+    .join(' ');
+  // The plate is only known post-booking (get_driver_contact).
+  const vehicleLine = vehicleDesc
+    ? vehicleDesc + (contact?.vehicle_plate ? ` · ${contact.vehicle_plate}` : '')
+    : 'Vehicle details not added yet';
 
   return (
     <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-4 pb-8">
@@ -115,19 +134,14 @@ export default function RideDetailsScreen() {
               {ride.driver.completed_rides_count} rides completed
             </Text>
             <Text className="font-body-regular text-sm text-muted">
-              {vehicleKnown
-                ? [ride.driver.vehicle_color, ride.driver.vehicle_make]
-                    .filter(Boolean)
-                    .join(' ') +
-                  (ride.driver.vehicle_plate ? ` · ${ride.driver.vehicle_plate}` : '')
-                : 'Vehicle details not added yet'}
+              {vehicleLine}
             </Text>
           </View>
-          {booked ? (
+          {booked && contact ? (
             <Pressable
               onPress={() =>
                 Linking.openURL(
-                  `https://wa.me/${ride.driver.phone_number.replace('+', '')}`,
+                  `https://wa.me/${contact.phone_number.replace('+', '')}`,
                 )
               }
               className="h-11 w-11 items-center justify-center rounded-full bg-prayer-green"
@@ -172,8 +186,10 @@ export default function RideDetailsScreen() {
           </View>
         </View>
 
-        {error ? (
-          <Text className="text-center text-base text-prayer-red">{error}</Text>
+        {bookingError ? (
+          <Text className="text-center text-base text-prayer-red">
+            {bookingError}
+          </Text>
         ) : null}
 
         {booked ? (
@@ -182,7 +198,9 @@ export default function RideDetailsScreen() {
               Seat booked!
             </Text>
             <Text className="text-center font-body-regular text-base text-brand-dark">
-              Message your driver on WhatsApp above to confirm pickup details.
+              {contact
+                ? 'Message your driver on WhatsApp above to confirm pickup details.'
+                : 'Your seat is confirmed.'}
             </Text>
           </View>
         ) : (

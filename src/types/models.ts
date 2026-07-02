@@ -47,7 +47,11 @@ export interface Ride {
   created_at: string;
 }
 
-/** A ride joined with the subset of its driver's profile the UI needs. */
+/**
+ * A ride joined with the public-safe subset of its driver's profile (the
+ * profiles_public view). Phone number and plate are deliberately absent —
+ * they're only obtainable via get_driver_contact after a confirmed booking.
+ */
 export interface RideWithDriver extends Ride {
   driver: Pick<
     Profile,
@@ -57,9 +61,13 @@ export interface RideWithDriver extends Ride {
     | 'completed_rides_count'
     | 'vehicle_make'
     | 'vehicle_color'
-    | 'vehicle_plate'
-    | 'phone_number'
   >;
+}
+
+/** Driver contact details revealed by the get_driver_contact RPC after booking. */
+export interface DriverContact {
+  phone_number: string;
+  vehicle_plate: string | null;
 }
 
 export interface Booking {

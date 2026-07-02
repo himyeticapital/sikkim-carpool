@@ -26,6 +26,16 @@ function formatShortDate(date: Date): string {
 }
 
 /**
+ * YYYY-MM-DD in the device's timezone — toISOString() would give the UTC
+ * calendar date, which is yesterday for IST users until 05:30.
+ */
+function toLocalDateKey(date: Date): string {
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${date.getFullYear()}-${m}-${d}`;
+}
+
+/**
  * Home / Search: a search card (current location → destination + date) above
  * a list of matching rides. Matching is a simple destination-text +
  * calendar-day filter (see src/services/rides.ts) — no route-graph pathing,
@@ -70,7 +80,7 @@ export default function HomeScreen() {
     try {
       const results = await listRides({
         destinationText: destination?.description,
-        departureDate: selectedDate.toISOString().slice(0, 10),
+        departureDate: toLocalDateKey(selectedDate),
       });
       setRides(results);
     } catch (err) {
