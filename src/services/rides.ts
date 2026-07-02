@@ -1,3 +1,4 @@
+import { localDayBounds } from '@/lib/format';
 import { supabase } from '@/services/supabase';
 import type {
   Booking,
@@ -44,16 +45,10 @@ export async function listRides(
     query = query.ilike('destination_text', `%${filters.destinationText}%`);
   }
   if (filters.departureDate) {
-    // The date means a calendar day in the device's timezone, so build the
-    // day's bounds as local Dates and compare as absolute instants —
-    // timezone-naive strings would be read as UTC by Postgres and shift the
-    // whole day by the UTC offset (5h30m for IST).
-    const dayStart = new Date(`${filters.departureDate}T00:00:00`);
-    const dayEnd = new Date(dayStart);
-    dayEnd.setDate(dayEnd.getDate() + 1);
+    const { start, end } = localDayBounds(filters.departureDate);
     query = query
-      .gte('departure_time', dayStart.toISOString())
-      .lt('departure_time', dayEnd.toISOString());
+      .gte('departure_time', start.toISOString())
+      .lt('departure_time', end.toISOString());
   }
 
   const { data, error } = await query;

@@ -106,8 +106,30 @@ with one personality. Rules:
   `npx expo start` — typecheck fails on new paths until you do.
 - **Dates**: ride search means "a calendar day where the user is". Build day
   bounds as local Dates, compare as ISO instants (`lib/format.ts`
-  `toLocalDateKey`, `src/services/rides.ts` listRides). Never
-  `toISOString().slice(0, 10)` for a local date.
+  `toLocalDateKey` / `localDayBounds`, used by `src/services/rides.ts`
+  listRides). Never `toISOString().slice(0, 10)` for a local date.
+
+### Testing
+
+`npm test` runs Jest (`jest-expo` preset). Scope so far is pure logic —
+`src/lib/*`, `src/theme/motion.ts` — plus one `@testing-library/react-native`
+component smoke test (`Pill`), not the services layer or screens yet:
+
+- Extract timezone/date-math and similar fragile invariants into a named,
+  pure function in `src/lib/` before writing the test — see
+  `localDayBounds` — rather than reaching into a Supabase-query-builder
+  chain to assert on it.
+- Mock `Alert`/`Linking` with `jest.spyOn(Alert, 'alert')` /
+  `jest.spyOn(Linking, 'openURL')` on the real `react-native` import, not
+  `jest.mock('react-native', factory)` — replacing the whole module breaks
+  Expo's own Jest setup and NativeWind's component wrapping, which both
+  need the real module during initialization.
+- `@testing-library/react-native`'s `render()` is async in the version this
+  project pins (backed by the `test-renderer` package, not
+  `react-test-renderer`) — always `await render(...)` before querying
+  `screen`.
+- CI (`.github/workflows/ci.yml`) runs `npm run typecheck` and `npm test`
+  on every push/PR to `main`.
 
 ## Data model & invariants
 
