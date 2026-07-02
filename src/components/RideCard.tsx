@@ -1,6 +1,7 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
+import { PressableCard } from '@/components/Card';
 import { Pill } from '@/components/Pill';
 import { RouteLines } from '@/components/RouteLines';
 import { TimeChips } from '@/components/TimeChips';
@@ -17,10 +18,7 @@ export function RideCard({ ride, onPress }: RideCardProps) {
   const lowSeats = ride.seats_available <= 1;
 
   return (
-    <Pressable
-      onPress={onPress}
-      className="rounded-2xl border border-mountain-mist bg-white p-4 active:bg-brand-light"
-    >
+    <PressableCard onPress={onPress} className="p-4">
       <View className="flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center gap-3">
           <Avatar name={driverName} />
@@ -53,7 +51,7 @@ export function RideCard({ ride, onPress }: RideCardProps) {
           tone={lowSeats ? 'warning' : 'positive'}
         />
       </View>
-    </Pressable>
+    </PressableCard>
   );
 }
 

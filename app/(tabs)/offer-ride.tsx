@@ -12,7 +12,9 @@ import {
 } from 'react-native';
 
 import { PlacesAutocomplete } from '@/components/PlacesAutocomplete';
+import { PressableScale } from '@/components/PressableScale';
 import { REQUIRE_DRIVER_KYC_BEFORE_POSTING } from '@/config/flags';
+import { successHaptic, warningHaptic } from '@/lib/haptics';
 import { haversineKm } from '@/lib/geo';
 import { fetchReverseGeocode } from '@/services/places';
 import { createRide } from '@/services/rides';
@@ -100,8 +102,10 @@ export default function OfferRideScreen() {
         seats_total: seats,
         price_per_seat: Number(price),
       });
+      successHaptic();
       router.replace(`/ride/${ride.id}`);
     } catch (err) {
+      warningHaptic();
       setError(
         err instanceof Error ? err.message : 'Could not post this ride. Try again.',
       );
@@ -125,12 +129,13 @@ export default function OfferRideScreen() {
           onUseCurrentLocation={handleUseCurrentLocationForOrigin}
           placeholder="Pickup location"
         />
-        <Pressable
+        <PressableScale
+          scaleTo={0.94}
           onPress={handleSwap}
           className="self-end rounded-full bg-brand-light px-4 py-2"
         >
           <Text className="font-heading text-sm text-brand-dark">⇅ Swap</Text>
-        </Pressable>
+        </PressableScale>
         <PlacesAutocomplete
           value={destination?.description}
           onSelect={setDestination}
@@ -178,8 +183,9 @@ export default function OfferRideScreen() {
         </Text>
         <View className="flex-row gap-3">
           {SEAT_OPTIONS.map((n) => (
-            <Pressable
+            <PressableScale
               key={n}
+              scaleTo={0.92}
               onPress={() => setSeats(n)}
               className={`h-14 w-14 items-center justify-center rounded-2xl border-2 ${
                 seats === n
@@ -188,7 +194,7 @@ export default function OfferRideScreen() {
               }`}
             >
               <Text className="font-heading text-lg text-ink">{n}</Text>
-            </Pressable>
+            </PressableScale>
           ))}
         </View>
       </View>
@@ -230,7 +236,7 @@ export default function OfferRideScreen() {
         <Text className="text-center text-base text-prayer-red">{error}</Text>
       ) : null}
 
-      <Pressable
+      <PressableScale
         disabled={!canSubmit || needsKycFirst}
         onPress={handleSubmit}
         className={`items-center rounded-full px-8 py-4 ${
@@ -242,7 +248,7 @@ export default function OfferRideScreen() {
         ) : (
           <Text className="font-heading text-lg text-cream">Post Ride</Text>
         )}
-      </Pressable>
+      </PressableScale>
 
       {showDatePicker ? (
         <DateTimePicker

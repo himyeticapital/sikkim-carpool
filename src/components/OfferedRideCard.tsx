@@ -1,6 +1,8 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
+import { Card } from '@/components/Card';
 import { Pill, type PillTone } from '@/components/Pill';
+import { PressableScale } from '@/components/PressableScale';
 import { RouteLines } from '@/components/RouteLines';
 import { TimeChips } from '@/components/TimeChips';
 import type { BookingWithRider, RideStatus, RideWithBookings } from '@/types/models';
@@ -32,7 +34,7 @@ export function OfferedRideCard({
   const seatsBooked = ride.seats_total - ride.seats_available;
 
   return (
-    <View className="gap-3 rounded-2xl border border-mountain-mist bg-white p-4">
+    <Card className="gap-3 p-4">
       <View className="flex-row items-center justify-between">
         <Text className="font-heading text-lg text-brand-dark">
           ₹{ride.price_per_seat}{' '}
@@ -66,12 +68,13 @@ export function OfferedRideCard({
                 {b.rider.full_name ?? 'Rider'} · {b.seats_booked} seat
                 {b.seats_booked === 1 ? '' : 's'}
               </Text>
-              <Pressable
+              <PressableScale
+                scaleTo={0.94}
                 onPress={() => onMessagePassenger(b)}
                 className="rounded-full bg-prayer-green px-3 py-1"
               >
                 <Text className="font-heading text-xs text-cream">Message</Text>
-              </Pressable>
+              </PressableScale>
             </View>
           ))
         )}
@@ -79,22 +82,22 @@ export function OfferedRideCard({
 
       {ride.status === 'active' ? (
         <View className="flex-row gap-2">
-          <Pressable
+          <PressableScale
             onPress={onComplete}
             disabled={mutating}
             className="flex-1 items-center rounded-full bg-brand px-4 py-2.5"
           >
             <Text className="font-heading text-sm text-cream">Mark completed</Text>
-          </Pressable>
-          <Pressable
+          </PressableScale>
+          <PressableScale
             onPress={onCancel}
             disabled={mutating}
             className="flex-1 items-center rounded-full bg-prayer-red/10 px-4 py-2.5"
           >
             <Text className="font-heading text-sm text-prayer-red">Cancel ride</Text>
-          </Pressable>
+          </PressableScale>
         </View>
       ) : null}
-    </View>
+    </Card>
   );
 }

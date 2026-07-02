@@ -2,18 +2,29 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
+import { FlatList, Pressable, RefreshControl, Text, View } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 
+import { AnimatedView } from '@/components/animated';
 import { EmptyState } from '@/components/EmptyState';
 import { PlacesAutocomplete } from '@/components/PlacesAutocomplete';
 import { RideCard } from '@/components/RideCard';
+import { RideCardSkeleton } from '@/components/Skeleton';
 import { PrayerFlagGarland } from '@/components/brand/PrayerFlagGarland';
 import { formatShortDate, isToday, toLocalDateKey } from '@/lib/format';
 import { fetchReverseGeocode } from '@/services/places';
 import { listRides } from '@/services/rides';
 import { useAppStore } from '@/store/useAppStore';
 import { palette } from '@/theme/colors';
+import { staggerDelay } from '@/theme/motion';
 import type { PlaceSelection, RideWithDriver } from '@/types/models';
+
+/** "Good morning" / "Good afternoon" / "Good evening" by device clock. */
+function greetingFor(hour: number): string {
+  if (hour < 12) return 'Good morning';
+  if (hour < 17) return 'Good afternoon';
+  return 'Good evening';
+}
 
 /**
  * Home / Search: a search card (current location → destination + date) above
@@ -33,6 +44,7 @@ export default function HomeScreen() {
 
   const [rides, setRides] = useState<RideWithDriver[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -67,6 +79,7 @@ export default function HomeScreen() {
       setError(err instanceof Error ? err.message : 'Could not load rides.');
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   }, [destination, selectedDate]);
 
@@ -75,6 +88,7 @@ export default function HomeScreen() {
   }, [runSearch]);
 
   const greetingName = profile?.full_name?.split(' ')[0] ?? 'there';
+  const greeting = greetingFor(new Date().getHours());
 
   return (
     <View className="flex-1 bg-cream">
@@ -83,19 +97,31 @@ export default function HomeScreen() {
       </View>
 
       <FlatList
-        data={rides}
+        data={loading ? [] : rides}
         keyExtractor={(r) => r.id}
         contentContainerClassName="gap-3 px-5 pb-8"
-        renderItem={({ item }) => (
-          <RideCard
-            ride={item}
-            onPress={() => router.push(`/ride/${item.id}`)}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => {
+              setRefreshing(true);
+              runSearch();
+            }}
+            tintColor={palette.brand}
           />
+        }
+        renderItem={({ item, index }) => (
+          <AnimatedView entering={FadeInDown.duration(320).delay(staggerDelay(index))}>
+            <RideCard
+              ride={item}
+              onPress={() => router.push(`/ride/${item.id}`)}
+            />
+          </AnimatedView>
         )}
         ListHeaderComponent={
           <View className="gap-4 pb-4 pt-2">
             <Text className="font-display text-2xl text-ink">
-              Hi, {greetingName}
+              {greeting}, {greetingName}
             </Text>
 
             <View className="gap-3 rounded-3xl bg-brand p-5">
@@ -160,7 +186,10 @@ export default function HomeScreen() {
             </View>
 
             {loading ? (
-              <ActivityIndicator color={palette.brand} style={{ paddingVertical: 24 }} />
+              <View className="gap-3">
+                <RideCardSkeleton />
+                <RideCardSkeleton />
+              </View>
             ) : null}
             {error ? (
               <Text className="text-base text-prayer-red">{error}</Text>

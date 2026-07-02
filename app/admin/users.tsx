@@ -1,16 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Text, TextInput, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
+import { Card } from '@/components/Card';
 import { Pill } from '@/components/Pill';
+import { PressableScale } from '@/components/PressableScale';
 import { confirmAction } from '@/lib/confirm';
 import { listAllProfiles, setUserBanned } from '@/services/admin';
 import { useAppStore } from '@/store/useAppStore';
@@ -106,7 +100,7 @@ export default function AdminUsersScreen() {
           const name = item.full_name ?? 'Unnamed user';
           const bannable = item.id !== profile?.id && item.role !== 'admin';
           return (
-            <View className="gap-3 rounded-2xl border border-mountain-mist bg-white p-4">
+            <Card className="gap-3 p-4">
               <View className="flex-row items-center gap-3">
                 <Avatar name={name} />
                 <View className="flex-1">
@@ -131,7 +125,7 @@ export default function AdminUsersScreen() {
               </View>
 
               {bannable ? (
-                <Pressable
+                <PressableScale
                   onPress={() => handleToggleBan(item)}
                   disabled={mutatingId === item.id}
                   className={`items-center rounded-full px-4 py-2.5 ${
@@ -149,9 +143,9 @@ export default function AdminUsersScreen() {
                         ? 'Unban user'
                         : 'Ban user'}
                   </Text>
-                </Pressable>
+                </PressableScale>
               ) : null}
-            </View>
+            </Card>
           );
         }}
       />

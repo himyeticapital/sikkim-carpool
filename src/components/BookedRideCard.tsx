@@ -1,7 +1,9 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
+import { PressableCard } from '@/components/Card';
 import { Pill, type PillTone } from '@/components/Pill';
+import { PressableScale } from '@/components/PressableScale';
 import { RouteLines } from '@/components/RouteLines';
 import { TimeChips } from '@/components/TimeChips';
 import type { BookingWithRide } from '@/types/models';
@@ -35,10 +37,7 @@ export function BookedRideCard({
     booking.status === 'confirmed' && booking.ride.status === 'active';
 
   return (
-    <Pressable
-      onPress={onPress}
-      className="gap-3 rounded-2xl border border-mountain-mist bg-white p-4 active:bg-brand-light"
-    >
+    <PressableCard onPress={onPress} className="gap-3 p-4">
       <View className="flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center gap-3">
           <Avatar name={driverName} />
@@ -63,14 +62,14 @@ export function BookedRideCard({
 
       {booking.status === 'confirmed' ? (
         <View className="flex-row gap-2">
-          <Pressable
+          <PressableScale
             onPress={onMessageDriver}
             className="flex-1 items-center rounded-full bg-prayer-green px-4 py-2.5"
           >
             <Text className="font-heading text-sm text-cream">Message driver</Text>
-          </Pressable>
+          </PressableScale>
           {cancellable ? (
-            <Pressable
+            <PressableScale
               onPress={onCancel}
               disabled={mutating}
               className="flex-1 items-center rounded-full bg-prayer-red/10 px-4 py-2.5"
@@ -78,10 +77,10 @@ export function BookedRideCard({
               <Text className="font-heading text-sm text-prayer-red">
                 {mutating ? 'Cancelling…' : 'Cancel booking'}
               </Text>
-            </Pressable>
+            </PressableScale>
           ) : null}
         </View>
       ) : null}
-    </Pressable>
+    </PressableCard>
   );
 }

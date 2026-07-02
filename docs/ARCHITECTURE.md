@@ -59,11 +59,44 @@ docs/                    This file
   - `Pill` — every status/badge; state maps to a tone
     (positive/neutral/warning/danger), never ad-hoc colors.
   - `Avatar` — initials avatar (sm/md/lg); the app has no photo uploads.
+  - `Card` / `PressableCard` — the one card surface (radius, hairline border,
+    paper-lift shadow); no hand-rolled `rounded-2xl border …` strings.
   - `RouteLines` — origin dot + destination square, anywhere a ride shows.
   - `TimeChips` — departure time/date chips; extra chips via children.
-  - `EmptyState`, `SegmentedControl`.
+  - `EmptyState`, `SegmentedControl` (animated thumb), `OtpCells`,
+    `Skeleton`/`RideCardSkeleton`.
 - **Every confirm-then-mutate flow uses `lib/confirm.ts`'s `confirmAction`**;
   WhatsApp deep links use `lib/whatsapp.ts`.
+
+### Motion & interaction
+
+The animation system is three springs (`src/theme/motion.ts`: press / gentle /
+pop) plus a stagger helper — every animation draws from them so the app moves
+with one personality. Rules:
+
+- **Presses are physical, not painted**: interactive surfaces use
+  `PressableScale` (spring scale + selection haptic) instead of `active:`
+  color classes. Rows inside a card keep the painted active state; standalone
+  buttons/cards scale.
+- **Lists load as skeletons** (`RideCardSkeleton`), never a bare spinner, and
+  **enter with a capped stagger** (`FadeInDown` + `staggerDelay`). Spinners
+  remain only inside buttons.
+- **Haptics vocabulary** (`lib/haptics.ts`): tap = acknowledged press,
+  success = something completed, warning = destructive confirm or failure.
+  Native-only; web stays silent. `confirmAction` fires warning automatically
+  when `destructive`.
+- **Animated components come from `src/components/animated.ts`**
+  (`AnimatedView`, `AnimatedPressable`, pre-registered with NativeWind's
+  `cssInterop`); don't call `createAnimatedComponent` per file.
+- **Signature pieces**: `PrayerFlagGarland` flags flutter on a shared breeze
+  clock (SVG animatedProps — native-only, static on web); `MistOverlay` is a
+  Skia fbm fragment shader drifting valley mist over `MountainBackdrop` on
+  auth (`.native.tsx` only; the web sibling renders nothing rather than
+  shipping CanvasKit). Anything Skia or SVG-animated follows this
+  platform-split pattern.
+- The booking success moment (ride details) is the one celebratory `pop`:
+  ZoomIn card + mini garland + success haptic. Don't dilute it by reusing the
+  pop spring for routine transitions.
 - **State**: the Zustand store holds only session, profile, and the
   initializing flag. Screen data stays in screen state.
 - **Typed routes are on** (`experiments.typedRoutes`). After adding/renaming a

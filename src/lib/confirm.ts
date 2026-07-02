@@ -1,5 +1,7 @@
 import { Alert } from 'react-native';
 
+import { warningHaptic } from '@/lib/haptics';
+
 interface ConfirmActionOptions {
   title: string;
   message: string;
@@ -24,6 +26,7 @@ export function confirmAction({
   destructive = false,
   onConfirm,
 }: ConfirmActionOptions): void {
+  if (destructive) warningHaptic();
   Alert.alert(title, message, [
     { text: cancelLabel, style: 'cancel' },
     {

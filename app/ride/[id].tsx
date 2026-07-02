@@ -1,18 +1,25 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { FadeIn, ZoomIn } from 'react-native-reanimated';
 
+import { AnimatedView } from '@/components/animated';
 import { Avatar } from '@/components/Avatar';
+import { Card } from '@/components/Card';
 import { Pill } from '@/components/Pill';
+import { PressableScale } from '@/components/PressableScale';
 import { RideMapPreview } from '@/components/RideMapPreview';
 import { RouteLines } from '@/components/RouteLines';
 import { TimeChips } from '@/components/TimeChips';
+import { PrayerFlagGarland } from '@/components/brand/PrayerFlagGarland';
 import { REQUIRE_RIDER_KYC_BEFORE_BOOKING } from '@/config/flags';
+import { successHaptic, warningHaptic } from '@/lib/haptics';
 import { haversineKm } from '@/lib/geo';
 import { openWhatsAppChat } from '@/lib/whatsapp';
 import { createBooking, getDriverContact, getRideById } from '@/services/rides';
 import { selectIsVerified, useAppStore } from '@/store/useAppStore';
 import { palette } from '@/theme/colors';
+import { springs } from '@/theme/motion';
 import type { DriverContact, RideWithDriver } from '@/types/models';
 
 const ASSUMED_SPEED_KMH = 30;
@@ -66,6 +73,7 @@ export default function RideDetailsScreen() {
     setBookingError(null);
     try {
       await createBooking(ride.id, session.user.id, 1);
+      successHaptic();
       setBooked(true);
       try {
         setContact(await getDriverContact(ride.id));
@@ -74,6 +82,7 @@ export default function RideDetailsScreen() {
         // button if the contact lookup fails.
       }
     } catch (err) {
+      warningHaptic();
       setBookingError(
         err instanceof Error ? err.message : 'Could not book this seat.',
       );
@@ -122,7 +131,7 @@ export default function RideDetailsScreen() {
       ) : null}
 
       <View className="gap-4 px-5">
-        <View className="flex-row items-center gap-3 rounded-2xl border border-mountain-mist bg-white p-4">
+        <Card className="flex-row items-center gap-3 p-4">
           <Avatar name={driverName} size="md" />
           <View className="flex-1">
             <Text className="font-heading text-base text-ink">{driverName}</Text>
@@ -135,16 +144,22 @@ export default function RideDetailsScreen() {
             </Text>
           </View>
           {booked && contact ? (
-            <Pressable
-              onPress={() => openWhatsAppChat(contact.phone_number)}
-              className="h-11 w-11 items-center justify-center rounded-full bg-prayer-green"
+            <AnimatedView
+              entering={ZoomIn.springify()
+                .damping(springs.pop.damping)
+                .stiffness(springs.pop.stiffness)}
             >
-              <Text className="text-lg">💬</Text>
-            </Pressable>
+              <PressableScale
+                onPress={() => openWhatsAppChat(contact.phone_number)}
+                className="h-11 w-11 items-center justify-center rounded-full bg-prayer-green"
+              >
+                <Text className="text-lg">💬</Text>
+              </PressableScale>
+            </AnimatedView>
           ) : null}
-        </View>
+        </Card>
 
-        <View className="gap-2 rounded-2xl border border-mountain-mist bg-white p-4">
+        <Card className="gap-2 p-4">
           <Text className="font-heading text-sm uppercase tracking-wide text-muted">
             Trip details
           </Text>
@@ -154,7 +169,7 @@ export default function RideDetailsScreen() {
               <Pill label={`${ride.seats_available} left`} tone="positive" />
             </TimeChips>
           </View>
-        </View>
+        </Card>
 
         {bookingError ? (
           <Text className="text-center text-base text-prayer-red">
@@ -163,7 +178,13 @@ export default function RideDetailsScreen() {
         ) : null}
 
         {booked ? (
-          <View className="items-center gap-1 rounded-2xl bg-brand-light p-4">
+          <AnimatedView
+            entering={ZoomIn.springify()
+              .damping(springs.pop.damping)
+              .stiffness(springs.pop.stiffness)}
+            className="items-center gap-1 overflow-hidden rounded-2xl bg-brand-light p-4 pt-2"
+          >
+            <PrayerFlagGarland flagCount={7} height={30} />
             <Text className="font-heading text-lg text-brand-dark">
               Seat booked!
             </Text>
@@ -172,31 +193,33 @@ export default function RideDetailsScreen() {
                 ? 'Message your driver on WhatsApp above to confirm pickup details.'
                 : 'Your seat is confirmed.'}
             </Text>
-          </View>
+          </AnimatedView>
         ) : (
-          <View className="flex-row items-center justify-between rounded-2xl border border-mountain-mist bg-white p-4">
-            <View>
-              <Text className="font-body-regular text-sm text-muted">
-                Total for 1 seat
-              </Text>
-              <Text className="font-heading text-xl text-brand-dark">
-                ₹{ride.price_per_seat}
-              </Text>
-            </View>
-            <Pressable
-              disabled={booking || ride.seats_available < 1}
-              onPress={handleBook}
-              className={`items-center rounded-full px-8 py-4 ${
-                booking || ride.seats_available < 1 ? 'bg-mountain-mist' : 'bg-brand'
-              }`}
-            >
-              {booking ? (
-                <ActivityIndicator color={palette.cream} />
-              ) : (
-                <Text className="font-heading text-lg text-cream">Book Seat</Text>
-              )}
-            </Pressable>
-          </View>
+          <AnimatedView entering={FadeIn.duration(250)}>
+            <Card className="flex-row items-center justify-between p-4">
+              <View>
+                <Text className="font-body-regular text-sm text-muted">
+                  Total for 1 seat
+                </Text>
+                <Text className="font-heading text-xl text-brand-dark">
+                  ₹{ride.price_per_seat}
+                </Text>
+              </View>
+              <PressableScale
+                disabled={booking || ride.seats_available < 1}
+                onPress={handleBook}
+                className={`items-center rounded-full px-8 py-4 ${
+                  booking || ride.seats_available < 1 ? 'bg-mountain-mist' : 'bg-brand'
+                }`}
+              >
+                {booking ? (
+                  <ActivityIndicator color={palette.cream} />
+                ) : (
+                  <Text className="font-heading text-lg text-cream">Book Seat</Text>
+                )}
+              </PressableScale>
+            </Card>
+          </AnimatedView>
         )}
       </View>
     </ScrollView>

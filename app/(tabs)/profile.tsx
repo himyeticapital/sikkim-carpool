@@ -3,7 +3,9 @@ import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
 import { Avatar } from '@/components/Avatar';
+import { Card } from '@/components/Card';
 import { Pill, type PillTone } from '@/components/Pill';
+import { PressableScale } from '@/components/PressableScale';
 import { signOut } from '@/services/auth';
 import { updateIsDriver } from '@/services/profiles';
 import { useAppStore } from '@/store/useAppStore';
@@ -52,7 +54,7 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-4 p-5">
-      <View className="items-center gap-2 rounded-2xl border border-mountain-mist bg-white p-6">
+      <Card className="items-center gap-2 p-6">
         <Avatar name={name} size="lg" />
         <Text className="font-heading text-xl text-ink">{name}</Text>
         <Text className="font-body-regular text-base text-muted">
@@ -64,9 +66,9 @@ export default function ProfileScreen() {
           </Text>
           <Pill label={kyc.label} tone={kyc.tone} />
         </View>
-      </View>
+      </Card>
 
-      <View className="flex-row items-center justify-between rounded-2xl border border-mountain-mist bg-white p-4">
+      <Card className="flex-row items-center justify-between p-4">
         <View className="flex-1">
           <Text className="font-heading text-base text-ink">Driver Mode</Text>
           <Text className="font-body-regular text-sm text-muted">
@@ -80,9 +82,9 @@ export default function ProfileScreen() {
           trackColor={{ true: palette.brand, false: palette.mountainMist }}
           thumbColor={palette.prayerWhite}
         />
-      </View>
+      </Card>
 
-      <View className="overflow-hidden rounded-2xl border border-mountain-mist bg-white">
+      <Card className="overflow-hidden">
         {(profile?.role === 'admin'
           ? ['Admin Dashboard', ...MENU_ITEMS]
           : MENU_ITEMS
@@ -104,14 +106,14 @@ export default function ProfileScreen() {
             <Text className="text-lg text-muted">›</Text>
           </Pressable>
         ))}
-      </View>
+      </Card>
 
-      <Pressable
+      <PressableScale
         onPress={handleLogout}
         className="items-center rounded-full bg-prayer-red/10 px-8 py-4"
       >
         <Text className="font-heading text-lg text-prayer-red">Log Out</Text>
-      </Pressable>
+      </PressableScale>
 
       <Text className="text-center text-sm text-muted">Sikkim Carpool v1.0.0</Text>
     </ScrollView>

@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, Pressable, Text, View } from 'react-native';
 
+import { Card } from '@/components/Card';
 import { Pill, type PillTone } from '@/components/Pill';
+import { PressableScale } from '@/components/PressableScale';
 import { RouteLines } from '@/components/RouteLines';
 import { TimeChips } from '@/components/TimeChips';
 import { confirmAction } from '@/lib/confirm';
@@ -117,7 +119,7 @@ export default function AdminRidesScreen() {
           const pill = STATUS_PILL[item.status];
           const bookingsCount = item.bookings[0]?.count ?? 0;
           return (
-            <View className="gap-3 rounded-2xl border border-mountain-mist bg-white p-4">
+            <Card className="gap-3 p-4">
               <View className="flex-row items-center justify-between">
                 <Text
                   className="flex-1 font-heading text-base text-ink"
@@ -139,7 +141,7 @@ export default function AdminRidesScreen() {
               </View>
 
               {item.status === 'active' ? (
-                <Pressable
+                <PressableScale
                   onPress={() => handleCancelRide(item)}
                   disabled={mutatingId === item.id}
                   className="items-center rounded-full bg-prayer-red/10 px-4 py-2.5"
@@ -147,9 +149,9 @@ export default function AdminRidesScreen() {
                   <Text className="font-heading text-sm text-prayer-red">
                     {mutatingId === item.id ? 'Cancelling…' : 'Cancel ride'}
                   </Text>
-                </Pressable>
+                </PressableScale>
               ) : null}
-            </View>
+            </Card>
           );
         }}
       />

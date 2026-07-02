@@ -1,28 +1,30 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 
+import { AnimatedView } from '@/components/animated';
+import { Card, PressableCard } from '@/components/Card';
 import { getAdminStats, type AdminStats } from '@/services/admin';
 import { palette } from '@/theme/colors';
+import { staggerDelay } from '@/theme/motion';
 
 /**
  * One headline number. Per the stat-tile contract: sentence-case muted label,
  * value in the ink text token (identity/state never rides on the value's
- * color), semibold sans.
+ * color), semibold sans. `index` cascades the entrance across the grid.
  */
-function StatTile({ label, value }: { label: string; value: string }) {
+function StatTile({ label, value, index }: { label: string; value: string; index: number }) {
   return (
-    <View className="min-w-[45%] flex-1 gap-0.5 rounded-2xl border border-mountain-mist bg-white p-4">
-      <Text className="font-body-regular text-sm text-muted">{label}</Text>
-      <Text className="font-heading text-2xl text-ink">{value}</Text>
-    </View>
+    <AnimatedView
+      className="min-w-[45%] flex-1"
+      entering={FadeInDown.duration(300).delay(staggerDelay(index, 45))}
+    >
+      <Card className="gap-0.5 p-4">
+        <Text className="font-body-regular text-sm text-muted">{label}</Text>
+        <Text className="font-heading text-2xl text-ink">{value}</Text>
+      </Card>
+    </AnimatedView>
   );
 }
 
@@ -40,16 +42,16 @@ function ManageLink({
   onPress: () => void;
 }) {
   return (
-    <Pressable
+    <PressableCard
       onPress={onPress}
-      className="flex-row items-center justify-between rounded-2xl border border-mountain-mist bg-white px-4 py-4 active:bg-brand-light"
+      className="flex-row items-center justify-between px-4 py-4"
     >
       <View>
         <Text className="font-heading text-base text-ink">{title}</Text>
         <Text className="font-body-regular text-sm text-muted">{subtitle}</Text>
       </View>
       <Text className="text-lg text-muted">›</Text>
-    </Pressable>
+    </PressableCard>
   );
 }
 
@@ -99,25 +101,26 @@ export default function AdminOverviewScreen() {
         <>
           <SectionLabel>Community</SectionLabel>
           <View className="flex-row flex-wrap gap-3">
-            <StatTile label="Users" value={String(stats.total_users)} />
-            <StatTile label="Drivers" value={String(stats.total_drivers)} />
-            <StatTile label="Verified" value={String(stats.verified_users)} />
-            <StatTile label="Banned" value={String(stats.banned_users)} />
+            <StatTile index={0} label="Users" value={String(stats.total_users)} />
+            <StatTile index={1} label="Drivers" value={String(stats.total_drivers)} />
+            <StatTile index={2} label="Verified" value={String(stats.verified_users)} />
+            <StatTile index={3} label="Banned" value={String(stats.banned_users)} />
           </View>
 
           <SectionLabel>Rides</SectionLabel>
           <View className="flex-row flex-wrap gap-3">
-            <StatTile label="Active" value={String(stats.rides_active)} />
-            <StatTile label="Completed" value={String(stats.rides_completed)} />
-            <StatTile label="Cancelled" value={String(stats.rides_cancelled)} />
+            <StatTile index={4} label="Active" value={String(stats.rides_active)} />
+            <StatTile index={5} label="Completed" value={String(stats.rides_completed)} />
+            <StatTile index={6} label="Cancelled" value={String(stats.rides_cancelled)} />
           </View>
 
           <SectionLabel>Bookings</SectionLabel>
           <View className="flex-row flex-wrap gap-3">
-            <StatTile label="Confirmed" value={String(stats.bookings_confirmed)} />
-            <StatTile label="Cancelled" value={String(stats.bookings_cancelled)} />
-            <StatTile label="Seats sold" value={String(stats.seats_sold)} />
+            <StatTile index={7} label="Confirmed" value={String(stats.bookings_confirmed)} />
+            <StatTile index={8} label="Cancelled" value={String(stats.bookings_cancelled)} />
+            <StatTile index={9} label="Seats sold" value={String(stats.seats_sold)} />
             <StatTile
+              index={10}
               label="Booked value"
               value={`₹${stats.booked_value.toLocaleString('en-IN')}`}
             />

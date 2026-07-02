@@ -1,11 +1,14 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, Text } from 'react-native';
+import { Alert, ScrollView, Text, View } from 'react-native';
+import { FadeInDown } from 'react-native-reanimated';
 
+import { AnimatedView } from '@/components/animated';
 import { BookedRideCard } from '@/components/BookedRideCard';
 import { EmptyState } from '@/components/EmptyState';
 import { OfferedRideCard } from '@/components/OfferedRideCard';
 import { SegmentedControl } from '@/components/SegmentedControl';
+import { RideCardSkeleton } from '@/components/Skeleton';
 import { confirmAction } from '@/lib/confirm';
 import { openWhatsAppChat } from '@/lib/whatsapp';
 import {
@@ -17,7 +20,7 @@ import {
   updateRideStatus,
 } from '@/services/rides';
 import { useAppStore } from '@/store/useAppStore';
-import { palette } from '@/theme/colors';
+import { staggerDelay } from '@/theme/motion';
 import type { BookingWithRide, BookingWithRider, RideWithBookings } from '@/types/models';
 
 const SEGMENTS = [
@@ -157,7 +160,10 @@ export default function MyRidesScreen() {
       <SegmentedControl options={SEGMENTS} value={segment} onChange={setSegment} />
 
       {loading ? (
-        <ActivityIndicator color={palette.brand} style={{ paddingVertical: 40 }} />
+        <View className="gap-3">
+          <RideCardSkeleton />
+          <RideCardSkeleton />
+        </View>
       ) : error ? (
         <Text className="py-6 text-center text-base text-prayer-red">{error}</Text>
       ) : segment === 'booked' ? (
@@ -167,15 +173,19 @@ export default function MyRidesScreen() {
             body="Find a ride on Home and your bookings will show up here."
           />
         ) : (
-          bookings.map((booking) => (
-            <BookedRideCard
+          bookings.map((booking, i) => (
+            <AnimatedView
               key={booking.id}
-              booking={booking}
-              mutating={mutatingId === booking.id}
-              onPress={() => router.push(`/ride/${booking.ride_id}`)}
-              onMessageDriver={() => handleMessageDriver(booking)}
-              onCancel={() => handleCancelBooking(booking)}
-            />
+              entering={FadeInDown.duration(320).delay(staggerDelay(i))}
+            >
+              <BookedRideCard
+                booking={booking}
+                mutating={mutatingId === booking.id}
+                onPress={() => router.push(`/ride/${booking.ride_id}`)}
+                onMessageDriver={() => handleMessageDriver(booking)}
+                onCancel={() => handleCancelBooking(booking)}
+              />
+            </AnimatedView>
           ))
         )
       ) : rides.length === 0 ? (
@@ -184,15 +194,19 @@ export default function MyRidesScreen() {
           body="Post a ride from the Offer tab and manage it here."
         />
       ) : (
-        rides.map((ride) => (
-          <OfferedRideCard
+        rides.map((ride, i) => (
+          <AnimatedView
             key={ride.id}
-            ride={ride}
-            mutating={mutatingId === ride.id}
-            onMessagePassenger={handleMessagePassenger}
-            onComplete={() => handleCompleteRide(ride)}
-            onCancel={() => handleCancelRide(ride)}
-          />
+            entering={FadeInDown.duration(320).delay(staggerDelay(i))}
+          >
+            <OfferedRideCard
+              ride={ride}
+              mutating={mutatingId === ride.id}
+              onMessagePassenger={handleMessagePassenger}
+              onComplete={() => handleCompleteRide(ride)}
+              onCancel={() => handleCancelRide(ride)}
+            />
+          </AnimatedView>
         ))
       )}
     </ScrollView>

@@ -1,17 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { FadeInDown, FadeInUp } from 'react-native-reanimated';
 
+import { AnimatedView } from '@/components/animated';
+import { OtpCells } from '@/components/OtpCells';
+import { PressableScale } from '@/components/PressableScale';
 import { Logo } from '@/components/brand/Logo';
+import { MistOverlay } from '@/components/brand/MistOverlay';
 import { MountainBackdrop } from '@/components/brand/MountainBackdrop';
 import { RoadMotif } from '@/components/brand/RoadMotif';
+import { successHaptic, warningHaptic } from '@/lib/haptics';
 import { fetchOrCreateProfile, requestOtp, verifyOtp } from '@/services/auth';
 import { useAppStore } from '@/store/useAppStore';
 import { palette } from '@/theme/colors';
@@ -55,6 +54,7 @@ export default function AuthScreen() {
       setCountdown(RESEND_SECONDS);
       requestAnimationFrame(() => otpInputRef.current?.focus());
     } catch (err) {
+      warningHaptic();
       setError(
         err instanceof Error ? err.message : 'Could not send the code. Try again.',
       );
@@ -68,11 +68,13 @@ export default function AuthScreen() {
     setLoading(true);
     try {
       const { session, user } = await verifyOtp(fullPhone, otp);
+      successHaptic();
       setSession(session);
       const profile = await fetchOrCreateProfile(user.id, fullPhone);
       setProfile(profile);
       router.replace('/(tabs)/home');
     } catch (err) {
+      warningHaptic();
       setError(
         err instanceof Error ? err.message : "That code didn't match. Try again.",
       );
@@ -92,6 +94,9 @@ export default function AuthScreen() {
           <View className="absolute inset-0">
             <RoadMotif height={200} />
           </View>
+          <View className="absolute inset-0">
+            <MistOverlay height={200} />
+          </View>
         </View>
       </View>
 
@@ -99,7 +104,10 @@ export default function AuthScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerClassName="flex-grow justify-center px-8 py-16"
       >
-        <View className="mb-10 items-center gap-1">
+        <AnimatedView
+          entering={FadeInDown.duration(500)}
+          className="mb-10 items-center gap-1"
+        >
           <Logo size={88} />
           <Text className="mt-3 font-display text-3xl text-ink">
             Sikkim Carpool
@@ -107,10 +115,10 @@ export default function AuthScreen() {
           <Text className="font-body-regular text-lg text-muted">
             Share rides across the hills
           </Text>
-        </View>
+        </AnimatedView>
 
         {phase === 'phone' ? (
-          <View className="gap-4">
+          <AnimatedView key="phone" entering={FadeInUp.duration(350)} className="gap-4">
             <Text className="font-heading text-base text-muted">
               Phone number
             </Text>
@@ -132,7 +140,7 @@ export default function AuthScreen() {
               <Text className="text-base text-prayer-red">{error}</Text>
             ) : null}
 
-            <Pressable
+            <PressableScale
               disabled={!canRequestOtp}
               onPress={handleRequestOtp}
               className={`items-center rounded-full px-8 py-4 ${
@@ -144,33 +152,21 @@ export default function AuthScreen() {
               ) : (
                 <Text className="font-heading text-lg text-cream">Get OTP</Text>
               )}
-            </Pressable>
+            </PressableScale>
 
             <Text className="text-center text-sm text-muted">
               By continuing, you agree to our Terms of Service and Privacy
               Policy
             </Text>
-          </View>
+          </AnimatedView>
         ) : (
-          <View className="gap-4">
+          <AnimatedView key="otp" entering={FadeInUp.duration(350)} className="gap-4">
             <Text className="text-center font-heading text-base text-muted">
               Enter the code sent to +91 {phone}
             </Text>
 
             <View className="relative">
-              <View className="flex-row justify-center gap-2">
-                {Array.from({ length: OTP_LENGTH }).map((_, i) => (
-                  <View
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={i}
-                    className="h-14 w-11 items-center justify-center rounded-xl border-2 border-brand-light bg-white"
-                  >
-                    <Text className="font-heading text-xl text-ink">
-                      {otp[i] ?? ''}
-                    </Text>
-                  </View>
-                ))}
-              </View>
+              <OtpCells value={otp} length={OTP_LENGTH} error={Boolean(error)} />
               <TextInput
                 ref={otpInputRef}
                 value={otp}
@@ -190,7 +186,7 @@ export default function AuthScreen() {
               </Text>
             ) : null}
 
-            <Pressable
+            <PressableScale
               disabled={!canVerify}
               onPress={handleVerify}
               className={`items-center rounded-full px-8 py-4 ${
@@ -204,7 +200,7 @@ export default function AuthScreen() {
                   Verify & Continue
                 </Text>
               )}
-            </Pressable>
+            </PressableScale>
 
             <Pressable
               disabled={countdown > 0}
@@ -223,7 +219,7 @@ export default function AuthScreen() {
                 Change number
               </Text>
             </Pressable>
-          </View>
+          </AnimatedView>
         )}
       </ScrollView>
     </View>
