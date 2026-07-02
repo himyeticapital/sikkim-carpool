@@ -7,12 +7,16 @@
 export type KycStatus = 'unverified' | 'pending' | 'verified';
 export type RideStatus = 'active' | 'completed' | 'cancelled';
 export type BookingStatus = 'confirmed' | 'cancelled';
+export type UserRole = 'user' | 'admin';
 
 export interface Profile {
   id: string;
   full_name: string | null;
   phone_number: string;
   is_driver: boolean;
+  role: UserRole;
+  /** Banned users can browse but can't post rides or book seats (RLS-enforced). */
+  is_banned: boolean;
   rating: number;
   /** Denormalized count of completed rides, shown next to the rating badge. */
   completed_rides_count: number;

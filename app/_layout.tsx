@@ -106,6 +106,18 @@ export default function RootLayout() {
             options={{ headerShown: true, title: 'My Rides' }}
           />
           <Stack.Screen
+            name="admin/index"
+            options={{ headerShown: true, title: 'Admin' }}
+          />
+          <Stack.Screen
+            name="admin/users"
+            options={{ headerShown: true, title: 'Users' }}
+          />
+          <Stack.Screen
+            name="admin/rides"
+            options={{ headerShown: true, title: 'Rides' }}
+          />
+          <Stack.Screen
             name="verify/digilocker"
             options={{ headerShown: true, title: 'Verify your identity' }}
           />

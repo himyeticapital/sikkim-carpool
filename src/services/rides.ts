@@ -19,7 +19,7 @@ import type {
 // Driver info comes from the profiles_public view, never the base table:
 // phone_number and vehicle_plate are gated behind get_driver_contact (a
 // confirmed booking) and must not appear in search/detail payloads.
-const RIDE_WITH_DRIVER_SELECT =
+export const RIDE_WITH_DRIVER_SELECT =
   '*, driver:profiles_public!rides_driver_id_fkey(id, full_name, rating, completed_rides_count, vehicle_make, vehicle_color)';
 
 export interface RideFilters {

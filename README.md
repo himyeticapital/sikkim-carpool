@@ -20,6 +20,7 @@ works end-to-end (see [Known gaps](#known-gaps)):
 | Ride Details + Booking | ✅ |
 | Profile | ✅ |
 | My Rides (bookings + offered rides, cancel/complete) | ✅ |
+| Admin dashboard (stats, user bans, ride moderation) | ✅ |
 | DigiLocker verification | 🚧 placeholder |
 
 ## Tech stack
@@ -77,9 +78,11 @@ The Supabase project's schema lives in `supabase/migrations/` — tables, RLS
 policies, and triggers that keep the interesting invariants server-side:
 profile auto-creation on sign-up, atomic seat decrement/restore on
 booking/cancellation, phone numbers revealed only across a confirmed booking
-(`get_driver_contact` / `get_rider_contact`), and ride lifecycle rules (terminal statuses,
-completed-ride counters, booking cancellation cascade). Apply it to a
-project with the [Supabase CLI](https://supabase.com/docs/guides/cli):
+(`get_driver_contact` / `get_rider_contact`), ride lifecycle rules (terminal statuses,
+completed-ride counters, booking cancellation cascade), and admin moderation
+(role-gated visibility, ban/unban with marketplace withdrawal, ride
+cancellation). Apply it to a project with the
+[Supabase CLI](https://supabase.com/docs/guides/cli):
 
 ```bash
 supabase login
@@ -90,11 +93,14 @@ supabase db push
 ## Known gaps
 
 - **Real SMS delivery**: phone-OTP sign-in is enabled with **test numbers**
-  (`+91 99999 00001` and `+91 99999 00002`, both accepting OTP `123456`,
-  valid until 2027-07-02) so the app works end-to-end in development. Real
-  phone numbers still need an SMS provider (Twilio, MSG91, etc.) configured
-  under Authentication > Providers in the Supabase dashboard — that needs a
-  separate SMS-provider account and can't be scripted from this repo.
+  (`+91 99999 00001`, `+91 99999 00002`, and `+91 99999 00003`, all accepting
+  OTP `123456`, valid until 2027-07-02) so the app works end-to-end in
+  development. `00003` is seeded as an **admin** account (Profile > Admin
+  Dashboard). Real phone numbers still need an SMS provider (Twilio, MSG91,
+  etc.) configured under Authentication > Providers in the Supabase
+  dashboard — that needs a separate SMS-provider account and can't be
+  scripted from this repo. To seed more admins, set `role = 'admin'` on
+  their `profiles` row from the SQL editor.
 
 ## Project structure
 

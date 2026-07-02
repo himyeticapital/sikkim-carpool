@@ -89,13 +89,18 @@ export default function ProfileScreen() {
       </View>
 
       <View className="overflow-hidden rounded-2xl border border-mountain-mist bg-white">
-        {MENU_ITEMS.map((label, i) => (
+        {(profile?.role === 'admin'
+          ? ['Admin Dashboard', ...MENU_ITEMS]
+          : MENU_ITEMS
+        ).map((label, i) => (
           <Pressable
             key={label}
             onPress={() =>
               label === 'My Rides'
                 ? router.push('/my-rides')
-                : Alert.alert(label, 'Coming soon.')
+                : label === 'Admin Dashboard'
+                  ? router.push('/admin')
+                  : Alert.alert(label, 'Coming soon.')
             }
             className={`flex-row items-center justify-between px-4 py-4 active:bg-brand-light ${
               i > 0 ? 'border-t border-mountain-mist' : ''
