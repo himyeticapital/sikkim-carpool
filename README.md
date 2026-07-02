@@ -76,8 +76,8 @@ npm run typecheck
 The Supabase project's schema lives in `supabase/migrations/` — tables, RLS
 policies, and triggers that keep the interesting invariants server-side:
 profile auto-creation on sign-up, atomic seat decrement/restore on
-booking/cancellation, driver contact details revealed only after a confirmed
-booking (`get_driver_contact`), and ride lifecycle rules (terminal statuses,
+booking/cancellation, phone numbers revealed only across a confirmed booking
+(`get_driver_contact` / `get_rider_contact`), and ride lifecycle rules (terminal statuses,
 completed-ride counters, booking cancellation cascade). Apply it to a
 project with the [Supabase CLI](https://supabase.com/docs/guides/cli):
 

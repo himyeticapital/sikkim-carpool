@@ -70,6 +70,11 @@ export interface DriverContact {
   vehicle_plate: string | null;
 }
 
+/** Rider contact details revealed by the get_rider_contact RPC to the ride's driver. */
+export interface RiderContact {
+  phone_number: string;
+}
+
 export interface Booking {
   id: string;
   ride_id: string;

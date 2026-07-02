@@ -6,6 +6,7 @@ import type {
   Ride,
   RideWithBookings,
   RideWithDriver,
+  RiderContact,
 } from '@/types/models';
 
 /**
@@ -194,5 +195,21 @@ export async function getDriverContact(
   });
   if (error) throw error;
   const [contact] = (data ?? []) as DriverContact[];
+  return contact ?? null;
+}
+
+/**
+ * The mirror of getDriverContact: resolves a passenger's phone number for the
+ * ride's driver. Gated server-side (get_rider_contact RPC): returns null
+ * unless the caller drives the booking's ride and the booking is confirmed.
+ */
+export async function getRiderContact(
+  bookingId: string,
+): Promise<RiderContact | null> {
+  const { data, error } = await supabase.rpc('get_rider_contact', {
+    p_booking_id: bookingId,
+  });
+  if (error) throw error;
+  const [contact] = (data ?? []) as RiderContact[];
   return contact ?? null;
 }

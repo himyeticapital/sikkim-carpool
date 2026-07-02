@@ -15,12 +15,17 @@ import { formatDate, formatTime } from '@/lib/format';
 import {
   cancelBooking,
   getDriverContact,
+  getRiderContact,
   listMyBookings,
   listMyRides,
   updateRideStatus,
 } from '@/services/rides';
 import { useAppStore } from '@/store/useAppStore';
-import type { BookingWithRide, RideWithBookings } from '@/types/models';
+import type {
+  BookingWithRide,
+  BookingWithRider,
+  RideWithBookings,
+} from '@/types/models';
 
 type Segment = 'booked' | 'offered';
 
@@ -129,6 +134,19 @@ export default function MyRidesScreen() {
     } catch {
       Alert.alert(
         "Couldn't reach your driver",
+        'Their contact details are unavailable right now. Please try again.',
+      );
+    }
+  }, []);
+
+  const handleMessagePassenger = useCallback(async (booking: BookingWithRider) => {
+    try {
+      const contact = await getRiderContact(booking.id);
+      if (!contact) throw new Error('no contact');
+      Linking.openURL(`https://wa.me/${contact.phone_number.replace('+', '')}`);
+    } catch {
+      Alert.alert(
+        "Couldn't reach this passenger",
         'Their contact details are unavailable right now. Please try again.',
       );
     }
@@ -341,10 +359,26 @@ export default function MyRidesScreen() {
                   </Text>
                 ) : (
                   passengers.map((b) => (
-                    <Text key={b.id} className="font-body-regular text-sm text-ink">
-                      {b.rider.full_name ?? 'Rider'} · {b.seats_booked} seat
-                      {b.seats_booked === 1 ? '' : 's'}
-                    </Text>
+                    <View
+                      key={b.id}
+                      className="flex-row items-center justify-between"
+                    >
+                      <Text
+                        className="flex-1 font-body-regular text-sm text-ink"
+                        numberOfLines={1}
+                      >
+                        {b.rider.full_name ?? 'Rider'} · {b.seats_booked} seat
+                        {b.seats_booked === 1 ? '' : 's'}
+                      </Text>
+                      <Pressable
+                        onPress={() => handleMessagePassenger(b)}
+                        className="rounded-full bg-prayer-green px-3 py-1"
+                      >
+                        <Text className="font-heading text-xs text-cream">
+                          Message
+                        </Text>
+                      </Pressable>
+                    </View>
                   ))
                 )}
               </View>
