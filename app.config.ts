@@ -9,6 +9,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Sikkim Carpool',
   slug: 'sikkim-carpool',
+  owner: 'sikkim-carpool',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -73,5 +74,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   experiments: {
     typedRoutes: true,
+  },
+  extra: {
+    eas: {
+      projectId: '6be49c37-03c3-414d-adc0-ceaaf5a47387',
+    },
   },
 });

@@ -89,11 +89,13 @@ with one personality. Rules:
   (`AnimatedView`, `AnimatedPressable`, pre-registered with NativeWind's
   `cssInterop`); don't call `createAnimatedComponent` per file.
 - **Signature pieces**: `PrayerFlagGarland` flags flutter on a shared breeze
-  clock (SVG animatedProps — native-only, static on web); `MistOverlay` is a
-  Skia fbm fragment shader drifting valley mist over `MountainBackdrop` on
-  auth (`.native.tsx` only; the web sibling renders nothing rather than
-  shipping CanvasKit). Anything Skia or SVG-animated follows this
-  platform-split pattern.
+  clock (SVG animatedProps — works on native and web via Reanimated's web
+  runtime). `MistOverlay` is a Skia fbm fragment shader on native
+  (`.native.tsx`); the web sibling (`.tsx`) ports the same fbm noise/density
+  math to a throttled Canvas2D loop (low-res buffer, upscaled with
+  smoothing) instead of shipping Skia's CanvasKit WASM just for one effect —
+  same look, no WASM cost. Keep both files' noise math in sync if you tune
+  the shader.
 - The booking success moment (ride details) is the one celebratory `pop`:
   ZoomIn card + mini garland + success haptic. Don't dilute it by reusing the
   pop spring for routine transitions.

@@ -53,7 +53,7 @@ export default function ProfileScreen() {
   const kyc = KYC_BADGE[profile?.kyc_status ?? 'unverified'];
 
   return (
-    <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-4 p-5">
+    <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-4 px-5 pt-5 pb-24">
       <Card className="items-center gap-2 p-6">
         <Avatar name={name} size="lg" />
         <Text className="font-heading text-xl text-ink">{name}</Text>

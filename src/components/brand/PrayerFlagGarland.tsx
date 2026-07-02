@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Platform } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedProps,
@@ -24,6 +23,10 @@ const AnimatedPolygon = Animated.createAnimatedComponent(Polygon);
 
 // One full sway cycle; sin(2π·t + φ) is continuous across the loop seam.
 const FLUTTER_CYCLE_MS = 2800;
+// Lungta proportions: small squarish cloth, sewn along its top edge to the
+// cord — the flag itself is close to a square, slightly taller than wide.
+const FLAG_W = 13;
+const FLAG_H = 15;
 
 interface FlagGeometry {
   x: number;
@@ -32,9 +35,11 @@ interface FlagGeometry {
 }
 
 /**
- * A single flag whose free corner drifts on the shared breeze clock. Each
- * flag gets a phase offset so the garland ripples along its length instead
- * of waving in lockstep.
+ * A single flag pinned along its top edge (as it's sewn to the cord), with
+ * the loose fabric below rippling on the shared breeze clock: the bottom
+ * edge shears sideways and the width breathes slightly, rather than the
+ * whole shape swinging from one point. Each flag gets a phase offset so the
+ * ripple travels along the garland instead of every flag moving in lockstep.
  */
 function FlutterFlag({
   flag,
@@ -47,21 +52,31 @@ function FlutterFlag({
 }) {
   const animatedProps = useAnimatedProps(() => {
     const t = breeze.value * 2 * Math.PI + phase;
-    const sway = Math.sin(t) * 2.4;
-    const lift = Math.cos(t * 0.8 + phase) * 1.3;
+    const sway = Math.sin(t) * 3;
+    const puff = Math.cos(t * 1.3 + phase) * 1.4;
+    const topL = flag.x - FLAG_W / 2;
+    const topR = flag.x + FLAG_W / 2;
+    const botR = flag.x + FLAG_W / 2 + sway + puff;
+    const botL = flag.x - FLAG_W / 2 + sway - puff;
     return {
-      points: `${flag.x - 7},${flag.y} ${flag.x + 7},${flag.y} ${
-        flag.x + sway
-      },${flag.y + 16 + lift}`,
+      points: `${topL},${flag.y} ${topR},${flag.y} ${botR},${flag.y + FLAG_H} ${botL},${flag.y + FLAG_H}`,
     };
   });
-  return <AnimatedPolygon animatedProps={animatedProps} fill={flag.color} />;
+  return (
+    <AnimatedPolygon
+      animatedProps={animatedProps}
+      fill={flag.color}
+      stroke={palette.ink}
+      strokeOpacity={0.18}
+      strokeWidth={0.75}
+    />
+  );
 }
 
 interface PrayerFlagGarlandProps {
   flagCount?: number;
   height?: number;
-  /** Breeze animation; defaults on (native only — SVG animatedProps are flaky on web). */
+  /** Breeze animation; on by default on every platform. */
   animated?: boolean;
 }
 
@@ -85,7 +100,7 @@ export function PrayerFlagGarland({
   const endX = viewW - 8;
 
   const breeze = useSharedValue(0);
-  const flutter = animated && Platform.OS !== 'web';
+  const flutter = animated;
 
   useEffect(() => {
     if (!flutter) return;
@@ -129,8 +144,13 @@ export function PrayerFlagGarland({
           <Polygon
             // eslint-disable-next-line react/no-array-index-key
             key={i}
-            points={`${flag.x - 7},${flag.y} ${flag.x + 7},${flag.y} ${flag.x},${flag.y + 16}`}
+            points={`${flag.x - FLAG_W / 2},${flag.y} ${flag.x + FLAG_W / 2},${flag.y} ${
+              flag.x + FLAG_W / 2
+            },${flag.y + FLAG_H} ${flag.x - FLAG_W / 2},${flag.y + FLAG_H}`}
             fill={flag.color}
+            stroke={palette.ink}
+            strokeOpacity={0.18}
+            strokeWidth={0.75}
           />
         ),
       )}

@@ -1,4 +1,3 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import * as Location from 'expo-location';
 import { useCallback, useMemo, useState } from 'react';
@@ -11,6 +10,7 @@ import {
   View,
 } from 'react-native';
 
+import { DateField } from '@/components/DateField';
 import { PlacesAutocomplete } from '@/components/PlacesAutocomplete';
 import { PressableScale } from '@/components/PressableScale';
 import { REQUIRE_DRIVER_KYC_BEFORE_POSTING } from '@/config/flags';
@@ -38,8 +38,6 @@ export default function OfferRideScreen() {
   const [origin, setOrigin] = useState<PlaceSelection | null>(null);
   const [destination, setDestination] = useState<PlaceSelection | null>(null);
   const [departureAt, setDepartureAt] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [showTimePicker, setShowTimePicker] = useState(false);
   const [seats, setSeats] = useState(2);
   const [price, setPrice] = useState('');
   const [loading, setLoading] = useState(false);
@@ -115,7 +113,7 @@ export default function OfferRideScreen() {
   }, [departureAt, destination, origin, price, router, seats, session]);
 
   return (
-    <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-6 p-5">
+    <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-6 px-5 pt-5 pb-24">
       <View className="gap-3">
         <Text className="font-heading text-sm uppercase tracking-wide text-muted">
           Route
@@ -151,29 +149,48 @@ export default function OfferRideScreen() {
           Date &amp; time
         </Text>
         <View className="flex-row gap-3">
-          <Pressable
-            onPress={() => setShowDatePicker(true)}
+          <DateField
+            mode="date"
+            value={departureAt}
+            minimumDate={new Date()}
+            label={departureAt.toLocaleDateString('en-IN', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}
+            onChange={(date) =>
+              setDepartureAt(
+                new Date(
+                  date.getFullYear(),
+                  date.getMonth(),
+                  date.getDate(),
+                  departureAt.getHours(),
+                  departureAt.getMinutes(),
+                ),
+              )
+            }
             className="flex-1 rounded-2xl border-2 border-brand-light bg-white px-4 py-4"
-          >
-            <Text className="font-body text-base text-ink">
-              {departureAt.toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric',
-              })}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setShowTimePicker(true)}
+          />
+          <DateField
+            mode="time"
+            value={departureAt}
+            label={departureAt.toLocaleTimeString('en-IN', {
+              hour: 'numeric',
+              minute: '2-digit',
+            })}
+            onChange={(time) =>
+              setDepartureAt(
+                new Date(
+                  departureAt.getFullYear(),
+                  departureAt.getMonth(),
+                  departureAt.getDate(),
+                  time.getHours(),
+                  time.getMinutes(),
+                ),
+              )
+            }
             className="flex-1 rounded-2xl border-2 border-brand-light bg-white px-4 py-4"
-          >
-            <Text className="font-body text-base text-ink">
-              {departureAt.toLocaleTimeString('en-IN', {
-                hour: 'numeric',
-                minute: '2-digit',
-              })}
-            </Text>
-          </Pressable>
+          />
         </View>
       </View>
 
@@ -249,49 +266,6 @@ export default function OfferRideScreen() {
           <Text className="font-heading text-lg text-cream">Post Ride</Text>
         )}
       </PressableScale>
-
-      {showDatePicker ? (
-        <DateTimePicker
-          value={departureAt}
-          mode="date"
-          minimumDate={new Date()}
-          onChange={(_event, date) => {
-            setShowDatePicker(false);
-            if (date) {
-              setDepartureAt(
-                new Date(
-                  date.getFullYear(),
-                  date.getMonth(),
-                  date.getDate(),
-                  departureAt.getHours(),
-                  departureAt.getMinutes(),
-                ),
-              );
-            }
-          }}
-        />
-      ) : null}
-
-      {showTimePicker ? (
-        <DateTimePicker
-          value={departureAt}
-          mode="time"
-          onChange={(_event, time) => {
-            setShowTimePicker(false);
-            if (time) {
-              setDepartureAt(
-                new Date(
-                  departureAt.getFullYear(),
-                  departureAt.getMonth(),
-                  departureAt.getDate(),
-                  time.getHours(),
-                  time.getMinutes(),
-                ),
-              );
-            }
-          }}
-        />
-      ) : null}
     </ScrollView>
   );
 }

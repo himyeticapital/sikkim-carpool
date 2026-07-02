@@ -67,7 +67,7 @@ const SLIDES = [
   {
     key: 'welcome',
     title: 'Sikkim Carpool',
-    body: 'Yatra sathi for the mountains — share a ride, share the road, one hill town at a time.',
+    body: 'Your companion for the climb — share a ride, share the road, one hill town at a time.',
     illustration: <Logo size={140} />,
   },
   {
