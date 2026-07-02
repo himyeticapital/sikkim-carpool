@@ -16,6 +16,7 @@ import { MountainBackdrop } from '@/components/brand/MountainBackdrop';
 import { PrayerFlagGarland } from '@/components/brand/PrayerFlagGarland';
 import { RoadMotif } from '@/components/brand/RoadMotif';
 import { markOnboardingSeen } from '@/services/onboarding';
+import { palette } from '@/theme/colors';
 
 function IconBadge({ children }: { children: React.ReactNode }) {
   return (
@@ -28,12 +29,12 @@ function IconBadge({ children }: { children: React.ReactNode }) {
 function PhoneGlyph() {
   return (
     <Svg width={64} height={64} viewBox="0 0 100 100">
-      <Rect x="25" y="8" width="50" height="84" rx="10" fill="#3A5273" />
-      <Rect x="30" y="18" width="40" height="58" rx="4" fill="#FDFBF6" />
-      <Circle cx="50" cy="84" r="4" fill="#FDFBF6" />
+      <Rect x="25" y="8" width="50" height="84" rx="10" fill={palette.mountainDeep} />
+      <Rect x="30" y="18" width="40" height="58" rx="4" fill={palette.prayerWhite} />
+      <Circle cx="50" cy="84" r="4" fill={palette.prayerWhite} />
       <Path
         d="M40,44 L48,52 L62,36"
-        stroke="#5B8C5A"
+        stroke={palette.prayerGreen}
         strokeWidth={6}
         strokeLinecap="round"
         strokeLinejoin="round"
@@ -48,11 +49,11 @@ function ShieldCheckGlyph() {
     <Svg width={64} height={64} viewBox="0 0 100 100">
       <Path
         d="M50,8 L86,24 L86,52 Q86,84 50,96 Q14,84 14,52 L14,24 Z"
-        fill="#3C8F86"
+        fill={palette.brand}
       />
       <Path
         d="M32,50 L45,63 L70,35"
-        stroke="#FDFBF6"
+        stroke={palette.prayerWhite}
         strokeWidth={8}
         strokeLinecap="round"
         strokeLinejoin="round"

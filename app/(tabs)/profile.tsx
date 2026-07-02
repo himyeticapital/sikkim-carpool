@@ -2,17 +2,20 @@ import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Alert, Pressable, ScrollView, Switch, Text, View } from 'react-native';
 
-import { avatarColorFor, initialsFor } from '@/lib/avatar';
+import { Avatar } from '@/components/Avatar';
+import { Pill, type PillTone } from '@/components/Pill';
+import { signOut } from '@/services/auth';
 import { updateIsDriver } from '@/services/profiles';
-import { supabase } from '@/services/supabase';
 import { useAppStore } from '@/store/useAppStore';
+import { palette } from '@/theme/colors';
+import type { KycStatus } from '@/types/models';
 
 const MENU_ITEMS = ['My Rides', 'Payment Methods', 'Help & Support', 'About'];
 
-const KYC_BADGE: Record<string, { label: string; bg: string; text: string }> = {
-  verified: { label: 'Verified', bg: 'bg-brand-light', text: 'text-brand-dark' },
-  pending: { label: 'Verification pending', bg: 'bg-sunset/20', text: 'text-sunset' },
-  unverified: { label: 'Not verified', bg: 'bg-mountain-mist', text: 'text-muted' },
+const KYC_BADGE: Record<KycStatus, { label: string; tone: PillTone }> = {
+  verified: { label: 'Verified', tone: 'positive' },
+  pending: { label: 'Verification pending', tone: 'warning' },
+  unverified: { label: 'Not verified', tone: 'neutral' },
 };
 
 export default function ProfileScreen() {
@@ -39,7 +42,7 @@ export default function ProfileScreen() {
   );
 
   const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
+    await signOut();
     reset();
     router.replace('/auth');
   }, [reset, router]);
@@ -50,14 +53,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView className="flex-1 bg-cream" contentContainerClassName="gap-4 p-5">
       <View className="items-center gap-2 rounded-2xl border border-mountain-mist bg-white p-6">
-        <View
-          className="h-20 w-20 items-center justify-center rounded-full"
-          style={{ backgroundColor: avatarColorFor(name) }}
-        >
-          <Text className="font-heading text-2xl text-cream">
-            {initialsFor(name)}
-          </Text>
-        </View>
+        <Avatar name={name} size="lg" />
         <Text className="font-heading text-xl text-ink">{name}</Text>
         <Text className="font-body-regular text-base text-muted">
           {profile?.phone_number ?? ''}
@@ -66,9 +62,7 @@ export default function ProfileScreen() {
           <Text className="font-body text-base text-ink">
             ★ {(profile?.rating ?? 0).toFixed(1)}
           </Text>
-          <View className={`rounded-full px-3 py-1 ${kyc.bg}`}>
-            <Text className={`font-body text-sm ${kyc.text}`}>{kyc.label}</Text>
-          </View>
+          <Pill label={kyc.label} tone={kyc.tone} />
         </View>
       </View>
 
@@ -83,8 +77,8 @@ export default function ProfileScreen() {
           value={profile?.is_driver ?? false}
           onValueChange={handleToggleDriverMode}
           disabled={updatingDriverMode}
-          trackColor={{ true: '#3C8F86', false: '#C9D7E0' }}
-          thumbColor="#FDFBF6"
+          trackColor={{ true: palette.brand, false: palette.mountainMist }}
+          thumbColor={palette.prayerWhite}
         />
       </View>
 

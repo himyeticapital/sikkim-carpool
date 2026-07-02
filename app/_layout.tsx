@@ -14,9 +14,13 @@ import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { fetchOrCreateProfile } from '@/services/auth';
-import { supabase } from '@/services/supabase';
+import {
+  fetchOrCreateProfile,
+  getSession,
+  onSessionChange,
+} from '@/services/auth';
 import { useAppStore } from '@/store/useAppStore';
+import { stackScreenOptions } from '@/theme/navigation';
 
 // Keep the native splash up until Baloo 2 finishes loading, so headings never
 // flash in the system font before swapping to the app's display face.
@@ -51,13 +55,13 @@ export default function RootLayout() {
   // Bootstrap the auth session on cold start, then keep it in sync (token
   // refresh, sign-out from another device, etc.) for as long as the app runs.
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      setSession(data.session);
-      if (data.session) {
+    getSession().then(async (session) => {
+      setSession(session);
+      if (session) {
         try {
           const profile = await fetchOrCreateProfile(
-            data.session.user.id,
-            data.session.user.phone ?? '',
+            session.user.id,
+            session.user.phone ?? '',
           );
           setProfile(profile);
         } catch {
@@ -67,14 +71,10 @@ export default function RootLayout() {
       setInitializing(false);
     });
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    return onSessionChange((session) => {
       setSession(session);
       if (!session) setProfile(null);
     });
-
-    return () => subscription.unsubscribe();
   }, [setInitializing, setProfile, setSession]);
 
   if (!fontsLoaded && !fontError) {
@@ -85,14 +85,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <StatusBar style="dark" />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            headerStyle: { backgroundColor: '#FBF6EC' },
-            headerTitleStyle: { fontFamily: 'Baloo2_600SemiBold', fontSize: 18 },
-            headerTintColor: '#3B2E2A',
-          }}
-        >
+        <Stack screenOptions={stackScreenOptions}>
           <Stack.Screen name="index" />
           <Stack.Screen name="onboarding/index" />
           <Stack.Screen name="(tabs)" />
@@ -105,18 +98,8 @@ export default function RootLayout() {
             name="my-rides"
             options={{ headerShown: true, title: 'My Rides' }}
           />
-          <Stack.Screen
-            name="admin/index"
-            options={{ headerShown: true, title: 'Admin' }}
-          />
-          <Stack.Screen
-            name="admin/users"
-            options={{ headerShown: true, title: 'Users' }}
-          />
-          <Stack.Screen
-            name="admin/rides"
-            options={{ headerShown: true, title: 'Rides' }}
-          />
+          {/* Screens and role gate live in app/admin/_layout.tsx. */}
+          <Stack.Screen name="admin" />
           <Stack.Screen
             name="verify/digilocker"
             options={{ headerShown: true, title: 'Verify your identity' }}

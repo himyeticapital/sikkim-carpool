@@ -1,18 +1,13 @@
-import { Redirect } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Pressable,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Alert, FlatList, Pressable, Text, View } from 'react-native';
 
-import { formatDate, formatTime } from '@/lib/format';
+import { Pill, type PillTone } from '@/components/Pill';
+import { RouteLines } from '@/components/RouteLines';
+import { TimeChips } from '@/components/TimeChips';
+import { confirmAction } from '@/lib/confirm';
 import { listAllRides, type AdminRide } from '@/services/admin';
 import { updateRideStatus } from '@/services/rides';
-import { useAppStore } from '@/store/useAppStore';
+import { palette } from '@/theme/colors';
 import type { RideStatus } from '@/types/models';
 
 const FILTERS: { key: RideStatus | 'all'; label: string }[] = [
@@ -22,17 +17,14 @@ const FILTERS: { key: RideStatus | 'all'; label: string }[] = [
   { key: 'cancelled', label: 'Cancelled' },
 ];
 
-const STATUS_PILL: Record<RideStatus, { label: string; bg: string; text: string }> = {
-  active: { label: 'Active', bg: 'bg-brand-light', text: 'text-brand-dark' },
-  completed: { label: 'Completed', bg: 'bg-mountain-mist', text: 'text-muted' },
-  cancelled: { label: 'Cancelled', bg: 'bg-prayer-red/10', text: 'text-prayer-red' },
+const STATUS_PILL: Record<RideStatus, { label: string; tone: PillTone }> = {
+  active: { label: 'Active', tone: 'positive' },
+  completed: { label: 'Completed', tone: 'neutral' },
+  cancelled: { label: 'Cancelled', tone: 'danger' },
 };
 
 /** Admin rides list: every ride by status, with a moderation cancel. */
 export default function AdminRidesScreen() {
-  const profile = useAppStore((s) => s.profile);
-  const initializing = useAppStore((s) => s.initializing);
-
   const [filter, setFilter] = useState<RideStatus | 'all'>('all');
   const [rides, setRides] = useState<AdminRide[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,39 +48,30 @@ export default function AdminRidesScreen() {
   }, [load]);
 
   const handleCancelRide = useCallback(
-    (ride: AdminRide) => {
-      Alert.alert(
-        'Cancel this ride?',
-        "This is a moderation action: the driver's ride and all its confirmed bookings will be cancelled.",
-        [
-          { text: 'Go back', style: 'cancel' },
-          {
-            text: 'Cancel ride',
-            style: 'destructive',
-            onPress: async () => {
-              setMutatingId(ride.id);
-              try {
-                await updateRideStatus(ride.id, 'cancelled');
-                await load();
-              } catch (err) {
-                Alert.alert(
-                  "Couldn't cancel the ride",
-                  err instanceof Error ? err.message : 'Please try again.',
-                );
-              } finally {
-                setMutatingId(null);
-              }
-            },
-          },
-        ],
-      );
-    },
+    (ride: AdminRide) =>
+      confirmAction({
+        title: 'Cancel this ride?',
+        message:
+          "This is a moderation action: the driver's ride and all its confirmed bookings will be cancelled.",
+        confirmLabel: 'Cancel ride',
+        destructive: true,
+        onConfirm: async () => {
+          setMutatingId(ride.id);
+          try {
+            await updateRideStatus(ride.id, 'cancelled');
+            await load();
+          } catch (err) {
+            Alert.alert(
+              "Couldn't cancel the ride",
+              err instanceof Error ? err.message : 'Please try again.',
+            );
+          } finally {
+            setMutatingId(null);
+          }
+        },
+      }),
     [load],
   );
-
-  if (!initializing && profile?.role !== 'admin') {
-    return <Redirect href="/home" />;
-  }
 
   return (
     <View className="flex-1 bg-cream">
@@ -117,7 +100,7 @@ export default function AdminRidesScreen() {
                 </Pressable>
               ))}
             </View>
-            {loading ? <ActivityIndicator color="#3C8F86" /> : null}
+            {loading ? <ActivityIndicator color={palette.brand} /> : null}
             {error ? (
               <Text className="text-center text-base text-prayer-red">{error}</Text>
             ) : null}
@@ -136,42 +119,19 @@ export default function AdminRidesScreen() {
           return (
             <View className="gap-3 rounded-2xl border border-mountain-mist bg-white p-4">
               <View className="flex-row items-center justify-between">
-                <Text className="flex-1 font-heading text-base text-ink" numberOfLines={1}>
+                <Text
+                  className="flex-1 font-heading text-base text-ink"
+                  numberOfLines={1}
+                >
                   {item.driver.full_name ?? 'Driver'}
                 </Text>
-                <View className={`rounded-full px-3 py-1 ${pill.bg}`}>
-                  <Text className={`font-body text-sm ${pill.text}`}>{pill.label}</Text>
-                </View>
+                <Pill label={pill.label} tone={pill.tone} />
               </View>
 
-              <View className="gap-1.5">
-                <View className="flex-row items-center gap-2">
-                  <View className="h-2.5 w-2.5 rounded-full bg-brand" />
-                  <Text className="flex-1 font-body-regular text-base text-ink" numberOfLines={1}>
-                    {item.source_text}
-                  </Text>
-                </View>
-                <View className="flex-row items-center gap-2">
-                  <View className="h-2.5 w-2.5 bg-mountain-deep" />
-                  <Text className="flex-1 font-body-regular text-base text-ink" numberOfLines={1}>
-                    {item.destination_text}
-                  </Text>
-                </View>
-              </View>
+              <RouteLines source={item.source_text} destination={item.destination_text} />
 
               <View className="flex-row items-center justify-between">
-                <View className="flex-row gap-2">
-                  <View className="rounded-full bg-cream px-3 py-1">
-                    <Text className="font-body text-sm text-ink">
-                      {formatTime(item.departure_time)}
-                    </Text>
-                  </View>
-                  <View className="rounded-full bg-cream px-3 py-1">
-                    <Text className="font-body text-sm text-ink">
-                      {formatDate(item.departure_time)}
-                    </Text>
-                  </View>
-                </View>
+                <TimeChips departureTime={item.departure_time} />
                 <Text className="font-body text-sm text-muted">
                   ₹{item.price_per_seat} · {bookingsCount} booking
                   {bookingsCount === 1 ? '' : 's'}

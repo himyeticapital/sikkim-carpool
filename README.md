@@ -105,19 +105,27 @@ supabase db push
 ## Project structure
 
 ```
-app/                  Expo Router routes (file-based)
+app/                  Expo Router routes (file-based) — routes are the screens
   onboarding/          First-run intro carousel
   auth/                Phone + OTP sign-in
   (tabs)/              Home, Offer a Ride, Profile
   ride/[id].tsx        Ride details + booking
+  my-rides.tsx         Bookings + offered rides, lifecycle actions
+  admin/               Role-gated admin dashboard
   verify/              DigiLocker verification gate
 src/
-  components/          Shared UI (PlacesAutocomplete, RideCard, brand/*)
+  components/          Shared UI (Pill, Avatar, RideCard, brand/*, …)
   config/              Env access, feature flags
-  services/            Supabase-backed data layer (auth, rides, profiles, places)
+  lib/                 Pure helpers (format, geo, confirm, whatsapp, …)
+  services/            Supabase-backed data layer (auth, rides, profiles, admin, places)
   store/               Zustand app state (session, profile)
+  theme/               Color palette (single source) + shared nav options
   types/               Domain models shared across screens/services
+docs/                 ARCHITECTURE.md — conventions, DB invariants, decisions
 ```
+
+Design detail — conventions, database invariants, the privacy model, and the
+decision log — lives in [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md).
 
 ## License
 

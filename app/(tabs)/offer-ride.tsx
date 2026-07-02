@@ -17,6 +17,7 @@ import { haversineKm } from '@/lib/geo';
 import { fetchReverseGeocode } from '@/services/places';
 import { createRide } from '@/services/rides';
 import { selectIsVerified, useAppStore } from '@/store/useAppStore';
+import { palette } from '@/theme/colors';
 import type { PlaceSelection } from '@/types/models';
 
 const SEAT_OPTIONS = [1, 2, 3, 4];
@@ -204,7 +205,7 @@ export default function OfferRideScreen() {
             value={price}
             onChangeText={(t) => setPrice(t.replace(/\D/g, ''))}
             placeholder="350"
-            placeholderTextColor="#7A6B60"
+            placeholderTextColor={palette.muted}
           />
           {suggestedRateHint ? (
             <Text className="text-sm text-muted">{suggestedRateHint}</Text>
@@ -237,7 +238,7 @@ export default function OfferRideScreen() {
         }`}
       >
         {loading ? (
-          <ActivityIndicator color="#FBF6EC" />
+          <ActivityIndicator color={palette.cream} />
         ) : (
           <Text className="font-heading text-lg text-cream">Post Ride</Text>
         )}

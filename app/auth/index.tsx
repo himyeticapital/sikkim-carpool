@@ -14,6 +14,7 @@ import { MountainBackdrop } from '@/components/brand/MountainBackdrop';
 import { RoadMotif } from '@/components/brand/RoadMotif';
 import { fetchOrCreateProfile, requestOtp, verifyOtp } from '@/services/auth';
 import { useAppStore } from '@/store/useAppStore';
+import { palette } from '@/theme/colors';
 
 const OTP_LENGTH = 6;
 const RESEND_SECONDS = 30;
@@ -122,7 +123,7 @@ export default function AuthScreen() {
                 value={phone}
                 onChangeText={(t) => setPhone(t.replace(/\D/g, '').slice(0, 10))}
                 placeholder="98765 43210"
-                placeholderTextColor="#7A6B60"
+                placeholderTextColor={palette.muted}
                 autoFocus
               />
             </View>
@@ -139,7 +140,7 @@ export default function AuthScreen() {
               }`}
             >
               {loading ? (
-                <ActivityIndicator color="#FBF6EC" />
+                <ActivityIndicator color={palette.cream} />
               ) : (
                 <Text className="font-heading text-lg text-cream">Get OTP</Text>
               )}
@@ -197,7 +198,7 @@ export default function AuthScreen() {
               }`}
             >
               {loading ? (
-                <ActivityIndicator color="#FBF6EC" />
+                <ActivityIndicator color={palette.cream} />
               ) : (
                 <Text className="font-heading text-lg text-cream">
                   Verify & Continue

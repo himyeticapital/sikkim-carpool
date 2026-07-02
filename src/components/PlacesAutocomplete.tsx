@@ -14,6 +14,7 @@ import {
   type AutocompletePrediction,
   type SessionToken,
 } from '@/services/places';
+import { palette } from '@/theme/colors';
 import type { PlaceSelection } from '@/types/models';
 
 interface PlacesAutocompleteProps {
@@ -203,12 +204,12 @@ export function PlacesAutocomplete({
             }
           }}
           placeholder={placeholder}
-          placeholderTextColor="#7A6B60"
+          placeholderTextColor={palette.muted}
           autoFocus={autoFocus}
           autoCorrect={false}
           returnKeyType="search"
         />
-        {loading ? <ActivityIndicator color="#3C8F86" /> : null}
+        {loading ? <ActivityIndicator color={palette.brand} /> : null}
         {query.length > 0 && !loading ? (
           <Pressable
             hitSlop={12}
@@ -231,7 +232,7 @@ export function PlacesAutocomplete({
           {showCurrentLocationRow ? (
             <Pressable
               onPress={handleUseCurrentLocation}
-              android_ripple={{ color: '#DCF1EE' }}
+              android_ripple={{ color: palette.brandLight }}
               className="flex-row items-center gap-2 px-4 py-4 active:bg-brand-light"
             >
               <Text className="text-lg">📍</Text>
@@ -245,7 +246,7 @@ export function PlacesAutocomplete({
             <Pressable
               key={p.placeId}
               onPress={() => handlePick(p)}
-              android_ripple={{ color: '#DCF1EE' }}
+              android_ripple={{ color: palette.brandLight }}
               className={`px-4 py-4 active:bg-brand-light ${
                 index > 0 || showCurrentLocationRow ? 'border-t border-brand-light' : ''
               }`}

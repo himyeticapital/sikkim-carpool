@@ -4,36 +4,16 @@ import * as Location from 'expo-location';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, Text, View } from 'react-native';
 
+import { EmptyState } from '@/components/EmptyState';
 import { PlacesAutocomplete } from '@/components/PlacesAutocomplete';
 import { RideCard } from '@/components/RideCard';
 import { PrayerFlagGarland } from '@/components/brand/PrayerFlagGarland';
+import { formatShortDate, isToday, toLocalDateKey } from '@/lib/format';
 import { fetchReverseGeocode } from '@/services/places';
 import { listRides } from '@/services/rides';
 import { useAppStore } from '@/store/useAppStore';
+import { palette } from '@/theme/colors';
 import type { PlaceSelection, RideWithDriver } from '@/types/models';
-
-function isToday(date: Date): boolean {
-  const now = new Date();
-  return (
-    date.getFullYear() === now.getFullYear() &&
-    date.getMonth() === now.getMonth() &&
-    date.getDate() === now.getDate()
-  );
-}
-
-function formatShortDate(date: Date): string {
-  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
-}
-
-/**
- * YYYY-MM-DD in the device's timezone — toISOString() would give the UTC
- * calendar date, which is yesterday for IST users until 05:30.
- */
-function toLocalDateKey(date: Date): string {
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${date.getFullYear()}-${m}-${d}`;
-}
 
 /**
  * Home / Search: a search card (current location → destination + date) above
@@ -180,7 +160,7 @@ export default function HomeScreen() {
             </View>
 
             {loading ? (
-              <ActivityIndicator color="#3C8F86" style={{ paddingVertical: 24 }} />
+              <ActivityIndicator color={palette.brand} style={{ paddingVertical: 24 }} />
             ) : null}
             {error ? (
               <Text className="text-base text-prayer-red">{error}</Text>
@@ -189,15 +169,10 @@ export default function HomeScreen() {
         }
         ListEmptyComponent={
           !loading && !error ? (
-            <View className="items-center gap-2 py-10">
-              <Text className="font-heading text-lg text-ink">
-                No rides yet on this route
-              </Text>
-              <Text className="text-center font-body-regular text-base text-muted">
-                Try a different date, or check back soon — new rides are
-                posted throughout the day.
-              </Text>
-            </View>
+            <EmptyState
+              title="No rides yet on this route"
+              body="Try a different date, or check back soon — new rides are posted throughout the day."
+            />
           ) : null
         }
       />

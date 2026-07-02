@@ -1,6 +1,8 @@
 import { Tabs } from 'expo-router';
 import { Text, type ColorValue } from 'react-native';
 
+import { palette } from '@/theme/colors';
+
 /**
  * Bottom tab navigator: Home (search), Offer a ride, Profile.
  * Icons are simple emoji glyphs for now — swapped for a proper icon set when
@@ -16,17 +18,17 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: true,
-        headerStyle: { backgroundColor: '#FBF6EC' },
+        headerStyle: { backgroundColor: palette.cream },
         headerTitleStyle: { fontFamily: 'Baloo2_600SemiBold', fontSize: 20 },
-        headerTintColor: '#3B2E2A',
-        tabBarActiveTintColor: '#3C8F86',
-        tabBarInactiveTintColor: '#7A6B60',
+        headerTintColor: palette.ink,
+        tabBarActiveTintColor: palette.brand,
+        tabBarInactiveTintColor: palette.muted,
         tabBarStyle: {
           height: 64,
           paddingBottom: 8,
           paddingTop: 6,
-          backgroundColor: '#FBF6EC',
-          borderTopColor: '#E5DCC8',
+          backgroundColor: palette.cream,
+          borderTopColor: '#E5DCC8', // one-off: cream darkened a step for the hairline
         },
         tabBarLabelStyle: { fontSize: 13, fontFamily: 'Baloo2_600SemiBold' },
       }}

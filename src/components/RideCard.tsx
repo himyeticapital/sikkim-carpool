@@ -1,7 +1,9 @@
 import { Pressable, Text, View } from 'react-native';
 
-import { avatarColorFor, initialsFor } from '@/lib/avatar';
-import { formatDate, formatTime } from '@/lib/format';
+import { Avatar } from '@/components/Avatar';
+import { Pill } from '@/components/Pill';
+import { RouteLines } from '@/components/RouteLines';
+import { TimeChips } from '@/components/TimeChips';
 import type { RideWithDriver } from '@/types/models';
 
 interface RideCardProps {
@@ -21,19 +23,9 @@ export function RideCard({ ride, onPress }: RideCardProps) {
     >
       <View className="flex-row items-center justify-between">
         <View className="flex-1 flex-row items-center gap-3">
-          <View
-            className="h-11 w-11 items-center justify-center rounded-full"
-            style={{ backgroundColor: avatarColorFor(driverName) }}
-          >
-            <Text className="font-heading text-base text-cream">
-              {initialsFor(driverName)}
-            </Text>
-          </View>
+          <Avatar name={driverName} />
           <View className="flex-1">
-            <Text
-              className="font-heading text-base text-ink"
-              numberOfLines={1}
-            >
+            <Text className="font-heading text-base text-ink" numberOfLines={1}>
               {driverName}
             </Text>
             <Text className="font-body-regular text-sm text-muted">
@@ -46,53 +38,20 @@ export function RideCard({ ride, onPress }: RideCardProps) {
           <Text className="font-heading text-lg text-brand-dark">
             ₹{ride.price_per_seat}
           </Text>
-          <Text className="font-body-regular text-xs text-muted">
-            per seat
-          </Text>
+          <Text className="font-body-regular text-xs text-muted">per seat</Text>
         </View>
       </View>
 
-      <View className="mt-3 gap-1.5 pl-1">
-        <View className="flex-row items-center gap-2">
-          <View className="h-2.5 w-2.5 rounded-full bg-brand" />
-          <Text className="font-body-regular text-base text-ink" numberOfLines={1}>
-            {ride.source_text}
-          </Text>
-        </View>
-        <View className="flex-row items-center gap-2">
-          <View className="h-2.5 w-2.5 bg-mountain-deep" />
-          <Text className="font-body-regular text-base text-ink" numberOfLines={1}>
-            {ride.destination_text}
-          </Text>
-        </View>
+      <View className="mt-3 pl-1">
+        <RouteLines source={ride.source_text} destination={ride.destination_text} />
       </View>
 
       <View className="mt-3 flex-row items-center justify-between">
-        <View className="flex-row gap-2">
-          <View className="rounded-full bg-cream px-3 py-1">
-            <Text className="font-body text-sm text-ink">
-              {formatTime(ride.departure_time)}
-            </Text>
-          </View>
-          <View className="rounded-full bg-cream px-3 py-1">
-            <Text className="font-body text-sm text-ink">
-              {formatDate(ride.departure_time)}
-            </Text>
-          </View>
-        </View>
-        <View
-          className={`rounded-full px-3 py-1 ${
-            lowSeats ? 'bg-sunset/20' : 'bg-brand-light'
-          }`}
-        >
-          <Text
-            className={`font-body text-sm ${
-              lowSeats ? 'text-sunset' : 'text-brand-dark'
-            }`}
-          >
-            {ride.seats_available} seat{ride.seats_available === 1 ? '' : 's'}
-          </Text>
-        </View>
+        <TimeChips departureTime={ride.departure_time} />
+        <Pill
+          label={`${ride.seats_available} seat${ride.seats_available === 1 ? '' : 's'}`}
+          tone={lowSeats ? 'warning' : 'positive'}
+        />
       </View>
     </Pressable>
   );

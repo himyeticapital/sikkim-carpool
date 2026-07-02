@@ -1,14 +1,18 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { Avatar } from '@/components/Avatar';
+import { Pill } from '@/components/Pill';
 import { RideMapPreview } from '@/components/RideMapPreview';
+import { RouteLines } from '@/components/RouteLines';
+import { TimeChips } from '@/components/TimeChips';
 import { REQUIRE_RIDER_KYC_BEFORE_BOOKING } from '@/config/flags';
-import { avatarColorFor, initialsFor } from '@/lib/avatar';
-import { formatDate, formatTime } from '@/lib/format';
 import { haversineKm } from '@/lib/geo';
+import { openWhatsAppChat } from '@/lib/whatsapp';
 import { createBooking, getDriverContact, getRideById } from '@/services/rides';
 import { selectIsVerified, useAppStore } from '@/store/useAppStore';
+import { palette } from '@/theme/colors';
 import type { DriverContact, RideWithDriver } from '@/types/models';
 
 const ASSUMED_SPEED_KMH = 30;
@@ -81,7 +85,7 @@ export default function RideDetailsScreen() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-cream">
-        <ActivityIndicator color="#3C8F86" />
+        <ActivityIndicator color={palette.brand} />
       </View>
     );
   }
@@ -119,14 +123,7 @@ export default function RideDetailsScreen() {
 
       <View className="gap-4 px-5">
         <View className="flex-row items-center gap-3 rounded-2xl border border-mountain-mist bg-white p-4">
-          <View
-            className="h-14 w-14 items-center justify-center rounded-full"
-            style={{ backgroundColor: avatarColorFor(driverName) }}
-          >
-            <Text className="font-heading text-lg text-cream">
-              {initialsFor(driverName)}
-            </Text>
-          </View>
+          <Avatar name={driverName} size="md" />
           <View className="flex-1">
             <Text className="font-heading text-base text-ink">{driverName}</Text>
             <Text className="font-body-regular text-sm text-muted">
@@ -139,11 +136,7 @@ export default function RideDetailsScreen() {
           </View>
           {booked && contact ? (
             <Pressable
-              onPress={() =>
-                Linking.openURL(
-                  `https://wa.me/${contact.phone_number.replace('+', '')}`,
-                )
-              }
+              onPress={() => openWhatsAppChat(contact.phone_number)}
               className="h-11 w-11 items-center justify-center rounded-full bg-prayer-green"
             >
               <Text className="text-lg">💬</Text>
@@ -155,34 +148,11 @@ export default function RideDetailsScreen() {
           <Text className="font-heading text-sm uppercase tracking-wide text-muted">
             Trip details
           </Text>
-          <View className="flex-row items-center gap-2">
-            <View className="h-2.5 w-2.5 rounded-full bg-brand" />
-            <Text className="font-body-regular text-base text-ink">
-              {ride.source_text}
-            </Text>
-          </View>
-          <View className="flex-row items-center gap-2">
-            <View className="h-2.5 w-2.5 bg-mountain-deep" />
-            <Text className="font-body-regular text-base text-ink">
-              {ride.destination_text}
-            </Text>
-          </View>
-          <View className="mt-2 flex-row gap-2">
-            <View className="rounded-full bg-cream px-3 py-1">
-              <Text className="font-body text-sm text-ink">
-                {formatDate(ride.departure_time)}
-              </Text>
-            </View>
-            <View className="rounded-full bg-cream px-3 py-1">
-              <Text className="font-body text-sm text-ink">
-                {formatTime(ride.departure_time)}
-              </Text>
-            </View>
-            <View className="rounded-full bg-brand-light px-3 py-1">
-              <Text className="font-body text-sm text-brand-dark">
-                {ride.seats_available} left
-              </Text>
-            </View>
+          <RouteLines source={ride.source_text} destination={ride.destination_text} />
+          <View className="mt-2">
+            <TimeChips departureTime={ride.departure_time}>
+              <Pill label={`${ride.seats_available} left`} tone="positive" />
+            </TimeChips>
           </View>
         </View>
 
@@ -221,7 +191,7 @@ export default function RideDetailsScreen() {
               }`}
             >
               {booking ? (
-                <ActivityIndicator color="#FBF6EC" />
+                <ActivityIndicator color={palette.cream} />
               ) : (
                 <Text className="font-heading text-lg text-cream">Book Seat</Text>
               )}

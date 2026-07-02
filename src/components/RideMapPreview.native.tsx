@@ -1,6 +1,7 @@
 import { Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 
+import { palette } from '@/theme/colors';
 import type { LatLng } from '@/types/models';
 
 interface RideMapPreviewProps {
@@ -36,19 +37,19 @@ export function RideMapPreview({
         <Marker
           coordinate={{ latitude: source.lat, longitude: source.lng }}
           title={sourceLabel}
-          pinColor="#3C8F86"
+          pinColor={palette.brand}
         />
         <Marker
           coordinate={{ latitude: destination.lat, longitude: destination.lng }}
           title={destinationLabel}
-          pinColor="#3A5273"
+          pinColor={palette.mountainDeep}
         />
         <Polyline
           coordinates={[
             { latitude: source.lat, longitude: source.lng },
             { latitude: destination.lat, longitude: destination.lng },
           ]}
-          strokeColor="#3C8F86"
+          strokeColor={palette.brand}
           strokeWidth={3}
         />
       </MapView>

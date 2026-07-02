@@ -1,6 +1,14 @@
+import { palette } from '@/theme/colors';
+
 // Cycles through the brand's accent colors so driver avatars read as
 // distinct at a glance without needing a photo.
-const AVATAR_COLORS = ['#3C8F86', '#E8935A', '#3E7CB1', '#D1483E', '#5B8C5A'];
+const AVATAR_COLORS = [
+  palette.brand,
+  palette.sunset,
+  palette.prayerBlue,
+  palette.prayerRed,
+  palette.prayerGreen,
+];
 
 export function avatarColorFor(name: string): string {
   const hash = name

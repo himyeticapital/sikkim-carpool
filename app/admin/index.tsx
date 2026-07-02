@@ -1,9 +1,16 @@
-import { Redirect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
 
 import { getAdminStats, type AdminStats } from '@/services/admin';
-import { useAppStore } from '@/store/useAppStore';
+import { palette } from '@/theme/colors';
 
 /**
  * One headline number. Per the stat-tile contract: sentence-case muted label,
@@ -23,11 +30,32 @@ function SectionLabel({ children }: { children: string }) {
   return <Text className="mt-2 font-heading text-base text-ink">{children}</Text>;
 }
 
+function ManageLink({
+  title,
+  subtitle,
+  onPress,
+}: {
+  title: string;
+  subtitle: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center justify-between rounded-2xl border border-mountain-mist bg-white px-4 py-4 active:bg-brand-light"
+    >
+      <View>
+        <Text className="font-heading text-base text-ink">{title}</Text>
+        <Text className="font-body-regular text-sm text-muted">{subtitle}</Text>
+      </View>
+      <Text className="text-lg text-muted">›</Text>
+    </Pressable>
+  );
+}
+
 /** Admin overview: KPI tiles plus entry points to the moderation screens. */
 export default function AdminOverviewScreen() {
   const router = useRouter();
-  const profile = useAppStore((s) => s.profile);
-  const initializing = useAppStore((s) => s.initializing);
 
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -48,12 +76,6 @@ export default function AdminOverviewScreen() {
     load();
   }, [load]);
 
-  // Server-side RLS is the real gate; this just keeps non-admins out of a
-  // screen that would only show them errors.
-  if (!initializing && profile?.role !== 'admin') {
-    return <Redirect href="/home" />;
-  }
-
   return (
     <ScrollView
       className="flex-1 bg-cream"
@@ -65,12 +87,12 @@ export default function AdminOverviewScreen() {
             setRefreshing(true);
             load();
           }}
-          tintColor="#3C8F86"
+          tintColor={palette.brand}
         />
       }
     >
       {!stats && !error ? (
-        <ActivityIndicator color="#3C8F86" style={{ paddingVertical: 40 }} />
+        <ActivityIndicator color={palette.brand} style={{ paddingVertical: 40 }} />
       ) : error ? (
         <Text className="py-6 text-center text-base text-prayer-red">{error}</Text>
       ) : stats ? (
@@ -104,30 +126,16 @@ export default function AdminOverviewScreen() {
       ) : null}
 
       <SectionLabel>Manage</SectionLabel>
-      <Pressable
+      <ManageLink
+        title="Users"
+        subtitle="Search, review, ban or unban"
         onPress={() => router.push('/admin/users')}
-        className="flex-row items-center justify-between rounded-2xl border border-mountain-mist bg-white px-4 py-4 active:bg-brand-light"
-      >
-        <View>
-          <Text className="font-heading text-base text-ink">Users</Text>
-          <Text className="font-body-regular text-sm text-muted">
-            Search, review, ban or unban
-          </Text>
-        </View>
-        <Text className="text-lg text-muted">›</Text>
-      </Pressable>
-      <Pressable
+      />
+      <ManageLink
+        title="Rides"
+        subtitle="All rides by status, with moderation"
         onPress={() => router.push('/admin/rides')}
-        className="flex-row items-center justify-between rounded-2xl border border-mountain-mist bg-white px-4 py-4 active:bg-brand-light"
-      >
-        <View>
-          <Text className="font-heading text-base text-ink">Rides</Text>
-          <Text className="font-body-regular text-sm text-muted">
-            All rides by status, with moderation
-          </Text>
-        </View>
-        <Text className="text-lg text-muted">›</Text>
-      </Pressable>
+      />
     </ScrollView>
   );
 }
