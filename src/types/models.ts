@@ -79,6 +79,21 @@ export interface Booking {
   created_at: string;
 }
 
+/** A booking joined with its ride (and that ride's driver) — the rider's "Booked" list. */
+export interface BookingWithRide extends Booking {
+  ride: RideWithDriver;
+}
+
+/** A booking joined with the rider's public profile — a driver's passenger list. */
+export interface BookingWithRider extends Booking {
+  rider: Pick<Profile, 'id' | 'full_name' | 'rating'>;
+}
+
+/** A driver's own ride with its bookings — the "Offered" list on My Rides. */
+export interface RideWithBookings extends Ride {
+  bookings: BookingWithRider[];
+}
+
 /** Shape returned by the Places Autocomplete component on selection. */
 export interface PlaceSelection {
   description: string;

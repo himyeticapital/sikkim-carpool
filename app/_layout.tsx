@@ -102,6 +102,10 @@ export default function RootLayout() {
             options={{ headerShown: true, title: 'Ride details' }}
           />
           <Stack.Screen
+            name="my-rides"
+            options={{ headerShown: true, title: 'My Rides' }}
+          />
+          <Stack.Screen
             name="verify/digilocker"
             options={{ headerShown: true, title: 'Verify your identity' }}
           />

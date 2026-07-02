@@ -1,5 +1,12 @@
 import { supabase } from '@/services/supabase';
-import type { Booking, DriverContact, Ride, RideWithDriver } from '@/types/models';
+import type {
+  Booking,
+  BookingWithRide,
+  DriverContact,
+  Ride,
+  RideWithBookings,
+  RideWithDriver,
+} from '@/types/models';
 
 /**
  * Data layer for rides/bookings. Requires `rides`, `bookings`, and `profiles`
@@ -107,6 +114,71 @@ export async function createBooking(
     .single();
   if (error) throw error;
   return data as Booking;
+}
+
+/** The rider's own bookings, newest first, each with its ride and driver. */
+export async function listMyBookings(
+  riderId: string,
+): Promise<BookingWithRide[]> {
+  const { data, error } = await supabase
+    .from('bookings')
+    .select(`*, ride:rides!bookings_ride_id_fkey(${RIDE_WITH_DRIVER_SELECT})`)
+    .eq('rider_id', riderId)
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as BookingWithRide[];
+}
+
+/**
+ * Cancels a booking. Seat restoration happens in the on_booking_updated
+ * trigger, atomically with this status change — never client-side.
+ */
+export async function cancelBooking(bookingId: string): Promise<Booking> {
+  const { data, error } = await supabase
+    .from('bookings')
+    .update({ status: 'cancelled' })
+    .eq('id', bookingId)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data as Booking;
+}
+
+/**
+ * The driver's own rides, newest departure first, each with its bookings and
+ * riders' public profiles. RLS lets a driver read bookings on their rides.
+ */
+export async function listMyRides(
+  driverId: string,
+): Promise<RideWithBookings[]> {
+  const { data, error } = await supabase
+    .from('rides')
+    .select(
+      '*, bookings(*, rider:profiles_public!bookings_rider_id_fkey(id, full_name, rating))',
+    )
+    .eq('driver_id', driverId)
+    .order('departure_time', { ascending: false });
+  if (error) throw error;
+  return (data ?? []) as unknown as RideWithBookings[];
+}
+
+/**
+ * Marks a ride completed or cancelled. Side effects (completed-rides counters,
+ * cancelling the ride's bookings) run in the on_ride_status_changed trigger;
+ * both statuses are terminal, so the server rejects any later change.
+ */
+export async function updateRideStatus(
+  rideId: string,
+  status: 'completed' | 'cancelled',
+): Promise<Ride> {
+  const { data, error } = await supabase
+    .from('rides')
+    .update({ status })
+    .eq('id', rideId)
+    .select('*')
+    .single();
+  if (error) throw error;
+  return data as Ride;
 }
 
 /**

@@ -92,7 +92,11 @@ export default function ProfileScreen() {
         {MENU_ITEMS.map((label, i) => (
           <Pressable
             key={label}
-            onPress={() => Alert.alert(label, 'Coming soon.')}
+            onPress={() =>
+              label === 'My Rides'
+                ? router.push('/my-rides')
+                : Alert.alert(label, 'Coming soon.')
+            }
             className={`flex-row items-center justify-between px-4 py-4 active:bg-brand-light ${
               i > 0 ? 'border-t border-mountain-mist' : ''
             }`}

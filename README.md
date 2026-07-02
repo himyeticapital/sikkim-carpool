@@ -19,6 +19,7 @@ works end-to-end (see [Known gaps](#known-gaps)):
 | Offer a Ride | ✅ |
 | Ride Details + Booking | ✅ |
 | Profile | ✅ |
+| My Rides (bookings + offered rides, cancel/complete) | ✅ |
 | DigiLocker verification | 🚧 placeholder |
 
 ## Tech stack
@@ -72,9 +73,12 @@ npm run typecheck
 
 ## Backend
 
-The Supabase project's schema lives in `supabase/migrations/` (tables,
-RLS policies, and two triggers: auto-create a profile on sign-up, and
-atomically decrement a ride's `seats_available` on booking). Apply it to a
+The Supabase project's schema lives in `supabase/migrations/` — tables, RLS
+policies, and triggers that keep the interesting invariants server-side:
+profile auto-creation on sign-up, atomic seat decrement/restore on
+booking/cancellation, driver contact details revealed only after a confirmed
+booking (`get_driver_contact`), and ride lifecycle rules (terminal statuses,
+completed-ride counters, booking cancellation cascade). Apply it to a
 project with the [Supabase CLI](https://supabase.com/docs/guides/cli):
 
 ```bash
